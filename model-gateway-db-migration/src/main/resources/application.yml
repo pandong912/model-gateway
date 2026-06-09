@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: model-gateway-db-migration
+  main:
+    web-application-type: none
+  datasource:
+    url: ${MODEL_GATEWAY_DATASOURCE_URL:jdbc:postgresql://localhost:5432/model_gateway}
+    username: ${MODEL_GATEWAY_DATASOURCE_USERNAME:}
+    password: ${MODEL_GATEWAY_DATASOURCE_PASSWORD:}
+    driver-class-name: org.postgresql.Driver
+  flyway:
+    enabled: ${MODEL_GATEWAY_FLYWAY_ENABLED:true}
+    locations: classpath:db/migration

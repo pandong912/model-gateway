@@ -8,6 +8,7 @@ public record ChatCompletionResponse(
         String id,
         String content,
         List<ToolCall> toolCalls,
+        List<GeneratedMedia> mediaOutputs,
         FinishReason finishReason,
         TokenUsage usage,
         String provider,

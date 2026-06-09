@@ -7,6 +7,7 @@ import com.example.modelgateway.api.model.ChatCompletionRequest;
 import com.example.modelgateway.api.model.ChatCompletionResponse;
 import com.example.modelgateway.api.model.ChatMessage;
 import com.example.modelgateway.api.model.ChatStreamEvent;
+import com.example.modelgateway.api.model.GeneratedMedia;
 import com.example.modelgateway.api.model.MediaContent;
 import com.example.modelgateway.api.model.TokenUsage;
 import com.example.modelgateway.core.model.InvocationContext;
@@ -171,12 +172,18 @@ public class GeminiProviderClient implements ProviderClient {
         copyIfPresent(parameters, configMap, "stopSequences", "stopSequences");
         copyIfPresent(parameters, configMap, "thinkingConfig", "thinkingConfig");
         copyIfPresent(parameters, configMap, "responseSchema", "responseSchema");
+        copyIfPresent(parameters, configMap, "responseModalities", "responseModalities");
 
         Object responseMimeType = parameters.get("responseMimeType");
         if (responseMimeType != null) {
             configMap.put("responseMimeType", responseMimeType);
         } else if (route.capabilities().contains(ModelCapability.JSON_MODE) || isJsonMode(parameters)) {
             configMap.put("responseMimeType", "application/json");
+        }
+        if (!configMap.containsKey("responseModalities")
+                && (route.capabilities().contains(ModelCapability.IMAGE_GENERATION)
+                || route.capabilities().contains(ModelCapability.IMAGE_EDITING))) {
+            configMap.put("responseModalities", List.of("TEXT", "IMAGE"));
         }
         return configMap;
     }
@@ -195,11 +202,14 @@ public class GeminiProviderClient implements ProviderClient {
 
     private ChatCompletionResponse toGatewayResponse(JsonNode response, ModelRoute route, InvocationContext context, long latencyMs) {
         JsonNode candidate = first(response.path("candidates"));
-        String content = extractText(candidate.path("content"));
+        JsonNode responseContent = candidate.path("content");
+        String content = extractText(responseContent);
+        List<GeneratedMedia> mediaOutputs = extractMedia(responseContent);
         return new ChatCompletionResponse(
                 UUID.randomUUID().toString(),
                 content,
                 List.of(),
+                mediaOutputs,
                 finishReason(candidate.path("finishReason").asText()),
                 usage(response.path("usageMetadata")),
                 route.provider(),
@@ -219,16 +229,22 @@ public class GeminiProviderClient implements ProviderClient {
                 .flatMap(data -> parseStreamData(data, responseId, route, context));
     }
 
-    private Mono<ChatStreamEvent> parseStreamData(String data, String responseId, ModelRoute route, InvocationContext context) {
+    private Flux<ChatStreamEvent> parseStreamData(String data, String responseId, ModelRoute route, InvocationContext context) {
         try {
             JsonNode node = objectMapper.readTree(data);
-            String delta = extractText(first(node.path("candidates")).path("content"));
-            if (delta.isBlank()) {
-                return Mono.empty();
+            JsonNode content = first(node.path("candidates")).path("content");
+            String delta = extractText(content);
+            List<GeneratedMedia> mediaOutputs = extractMedia(content);
+            List<ChatStreamEvent> events = new ArrayList<>();
+            if (!delta.isBlank()) {
+                events.add(ChatStreamEvent.delta(responseId, delta, route.provider(), route.model(), route.id(), context.traceId()));
             }
-            return Mono.just(ChatStreamEvent.delta(responseId, delta, route.provider(), route.model(), route.id(), context.traceId()));
+            if (!mediaOutputs.isEmpty()) {
+                events.add(ChatStreamEvent.media(responseId, mediaOutputs, route.provider(), route.model(), route.id(), context.traceId()));
+            }
+            return Flux.fromIterable(events);
         } catch (Exception ex) {
-            return Mono.error(ex);
+            return Flux.error(ex);
         }
     }
 
@@ -249,6 +265,32 @@ public class GeminiProviderClient implements ProviderClient {
             }
         }
         return builder.toString();
+    }
+
+    private List<GeneratedMedia> extractMedia(JsonNode content) {
+        JsonNode parts = content.path("parts");
+        if (!parts.isArray()) {
+            return List.of();
+        }
+        List<GeneratedMedia> mediaOutputs = new ArrayList<>();
+        for (JsonNode part : parts) {
+            JsonNode inlineData = part.has("inlineData") ? part.path("inlineData") : part.path("inline_data");
+            if (inlineData.isMissingNode() || inlineData.isNull()) {
+                continue;
+            }
+            String mimeType = inlineData.path("mimeType").asText(inlineData.path("mime_type").asText("application/octet-stream"));
+            String base64 = inlineData.path("data").asText("");
+            if (!base64.isBlank()) {
+                String type = mimeType.startsWith("image/") ? "image" : "media";
+                mediaOutputs.add(new GeneratedMedia(
+                        type,
+                        mimeType,
+                        base64,
+                        null,
+                        Map.of("source", "gemini-inline-data")));
+            }
+        }
+        return mediaOutputs;
     }
 
     private FinishReason finishReason(String value) {

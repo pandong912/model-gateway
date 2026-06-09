@@ -127,6 +127,7 @@ public class OpenAiCompatibleProviderClient implements ProviderClient {
                 response.path("id").asText(UUID.randomUUID().toString()),
                 content,
                 List.of(),
+                List.of(),
                 finishReason(choice.path("finish_reason").asText()),
                 usage(response.path("usage")),
                 route.provider(),

@@ -6,5 +6,7 @@ public enum ModelCapability {
     JSON_MODE,
     TOOL_CALLING,
     STREAMING,
-    LONG_CONTEXT
+    LONG_CONTEXT,
+    IMAGE_GENERATION,
+    IMAGE_EDITING
 }

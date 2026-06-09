@@ -6,9 +6,6 @@ spring:
     username: ${MODEL_GATEWAY_DATASOURCE_USERNAME:model_gateway}
     password: ${MODEL_GATEWAY_DATASOURCE_PASSWORD:}
     driver-class-name: org.postgresql.Driver
-  flyway:
-    enabled: ${MODEL_GATEWAY_FLYWAY_ENABLED:true}
-    locations: classpath:db/migration
 
 mybatis-plus:
   configuration:
@@ -192,3 +189,17 @@ model:
           - gemini-flash
           - default-chat
         timeout: 90s
+      - id: gemini-image
+        provider: gemini
+        model: ${GEMINI_IMAGE_MODEL:gemini-2.5-flash-image}
+        capabilities:
+          - TEXT_GENERATION
+          - IMAGE_GENERATION
+          - IMAGE_EDITING
+        scenarios:
+          - IMAGE_GENERATION
+          - IMAGE_EDITING
+          - VISUAL_ASSET_GENERATION
+        priority: 60
+        enabled: ${GEMINI_IMAGE_ENABLED:${GEMINI_ENABLED:false}}
+        timeout: 120s

@@ -20,6 +20,7 @@ export OPENAI_COMPATIBLE_BASE_URL=https://api.openai.com/v1
 export OPENAI_COMPATIBLE_API_KEY=your-api-key
 export OPENAI_COMPATIBLE_MODEL=gpt-4o-mini
 
+mvn -pl model-gateway-db-migration -am spring-boot:run
 mvn -pl model-gateway-service -am spring-boot:run
 ```
 
@@ -31,7 +32,7 @@ export MODEL_GATEWAY_DATASOURCE_USERNAME=model_gateway
 export MODEL_GATEWAY_DATASOURCE_PASSWORD=your-password
 ```
 
-数据库 schema 和 PromptTemplate 初始数据由 Flyway 管理，迁移脚本位于 `model-gateway-db-migration/src/main/resources/db/migration`。`application.yml` 中的 `model.gateway.routes` 仍会作为运行期兜底种子数据导入数据库；如果数据库里已存在同 ID 路由，不会覆盖已有数据。
+数据库 schema 和 PromptTemplate 初始数据由 `model-gateway-db-migration` 的独立启动入口运行 Flyway 管理，迁移脚本位于 `model-gateway-db-migration/src/main/resources/db/migration`。`model-gateway-service` 启动时不再自动执行 Flyway；`application.yml` 中的 `model.gateway.routes` 仍会作为运行期兜底种子数据导入数据库；如果数据库里已存在同 ID 路由，不会覆盖已有数据。
 
 调用通用接口：
 
@@ -67,7 +68,7 @@ export MODEL_GATEWAY_REQUESTS_PER_MINUTE=120
 
 系统提示词通过数据库中的 Prompt Catalog 管理，不建议硬编码在业务代码中。初始 Prompt 数据由 Flyway 迁移脚本导入，后续通过管理接口或运营后台维护。Prompt 支持按 `key`、`version`、`scenario`、`locale` 管理模板，并在模型调用前自动注入为系统消息。
 
-PostgreSQL 初始化脚本由 Flyway 管理，`V2__seed_prompt_templates.sql` 包含 `storyboard.system`、`script.system`、`asset-tagging.system`、`shot-prompt-rewrite.system` 等 PromptTemplate 初始数据。
+PostgreSQL 初始化脚本由 Flyway 管理，`seed_prompt_templates.sql` 包含 `storyboard.system`、`script.system`、`asset-tagging.system`、`shot-prompt-rewrite.system` 等 PromptTemplate 初始数据。
 
 如果请求没有显式指定提示词，网关会按 `scenario` 查找 `default-for-scenario: true` 的模板。例如 `STORYBOARD_PLANNING` 会默认使用 `storyboard.system`。
 
@@ -232,4 +233,52 @@ curl -X POST http://localhost:8080/api/v1/chat/completions \
       }
     ]
   }'
+```
+
+Gemini 图像生成/编辑使用 `gemini-image` 路由，默认模型为 `gemini-2.5-flash-image`。生成图片会返回在统一响应的 `mediaOutputs` 字段中：
+
+```bash
+curl -X POST http://localhost:8080/api/v1/chat/completions \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "tenantId": "demo-tenant",
+    "projectId": "video-project",
+    "scenario": "IMAGE_GENERATION",
+    "capability": "IMAGE_GENERATION",
+    "modelHint": "gemini-image",
+    "messages": [
+      {"role": "USER", "content": "生成一张 16:9 电影感画面：未来城市黄昏，主角骑着悬浮摩托穿过霓虹街道。"}
+    ],
+    "parameters": {
+      "responseModalities": ["TEXT", "IMAGE"]
+    },
+    "metadata": {
+      "promptKey": "image-generation.system",
+      "promptVersion": "v1",
+      "promptVariables": {
+        "aspectRatio": "16:9",
+        "visualStyle": "cinematic",
+        "language": "zh-CN"
+      }
+    }
+  }'
+```
+
+响应中的图片结构示例：
+
+```json
+{
+  "content": "已生成图片。",
+  "mediaOutputs": [
+    {
+      "type": "image",
+      "mimeType": "image/png",
+      "base64": "...",
+      "url": null,
+      "metadata": {
+        "source": "gemini-inline-data"
+      }
+    }
+  ]
+}
 ```
