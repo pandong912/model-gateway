@@ -1,0 +1,194 @@
+spring:
+  application:
+    name: model-gateway-service
+  datasource:
+    url: ${MODEL_GATEWAY_DATASOURCE_URL:jdbc:postgresql://localhost:5432/model_gateway}
+    username: ${MODEL_GATEWAY_DATASOURCE_USERNAME:model_gateway}
+    password: ${MODEL_GATEWAY_DATASOURCE_PASSWORD:}
+    driver-class-name: org.postgresql.Driver
+  flyway:
+    enabled: ${MODEL_GATEWAY_FLYWAY_ENABLED:true}
+    locations: classpath:db/migration
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+model:
+  gateway:
+    security:
+      enabled: ${MODEL_GATEWAY_SECURITY_ENABLED:false}
+      api-keys: ${MODEL_GATEWAY_API_KEYS:}
+    quota:
+      enabled: ${MODEL_GATEWAY_QUOTA_ENABLED:false}
+      requests-per-minute: ${MODEL_GATEWAY_REQUESTS_PER_MINUTE:120}
+    providers:
+      - id: default-openai-compatible
+        type: openai-compatible
+        base-url: ${OPENAI_COMPATIBLE_BASE_URL:https://api.openai.com/v1}
+        api-key: ${OPENAI_COMPATIBLE_API_KEY:}
+        organization: ${OPENAI_ORGANIZATION:}
+        timeout: 60s
+      - id: deepseek
+        type: openai-compatible
+        base-url: ${DEEPSEEK_BASE_URL:https://api.deepseek.com/v1}
+        api-key: ${DEEPSEEK_API_KEY:}
+        timeout: 60s
+      - id: qwen
+        type: openai-compatible
+        base-url: ${QWEN_BASE_URL:https://dashscope.aliyuncs.com/compatible-mode/v1}
+        api-key: ${QWEN_API_KEY:}
+        timeout: 60s
+      - id: gemini
+        type: gemini
+        base-url: ${GEMINI_BASE_URL:https://generativelanguage.googleapis.com/v1beta}
+        api-key: ${GEMINI_API_KEY:}
+        timeout: 60s
+    routes:
+      - id: default-chat
+        provider: default-openai-compatible
+        model: ${OPENAI_COMPATIBLE_MODEL:gpt-4o-mini}
+        capabilities:
+          - TEXT_GENERATION
+          - STREAMING
+          - JSON_MODE
+        scenarios:
+          - SCRIPT_GENERATION
+          - STORYBOARD_PLANNING
+          - SHOT_PROMPT_REWRITE
+          - ASSET_TAGGING
+        priority: 100
+        enabled: true
+        timeout: 60s
+      - id: deepseek-chat
+        provider: deepseek
+        model: ${DEEPSEEK_CHAT_MODEL:deepseek-chat}
+        capabilities:
+          - TEXT_GENERATION
+          - STREAMING
+          - JSON_MODE
+        scenarios:
+          - SCRIPT_GENERATION
+          - STORYBOARD_PLANNING
+          - SHOT_PROMPT_REWRITE
+          - ASSET_TAGGING
+        priority: 80
+        enabled: ${DEEPSEEK_ENABLED:false}
+        fallback-route-ids:
+          - default-chat
+        timeout: 60s
+      - id: deepseek-reasoner
+        provider: deepseek
+        model: ${DEEPSEEK_REASONER_MODEL:deepseek-reasoner}
+        capabilities:
+          - TEXT_GENERATION
+          - STREAMING
+          - LONG_CONTEXT
+        scenarios:
+          - STORYBOARD_PLANNING
+          - SCRIPT_GENERATION
+        priority: 90
+        enabled: ${DEEPSEEK_REASONER_ENABLED:${DEEPSEEK_ENABLED:false}}
+        fallback-route-ids:
+          - deepseek-chat
+          - default-chat
+        timeout: 120s
+      - id: qwen-plus
+        provider: qwen
+        model: ${QWEN_PLUS_MODEL:qwen-plus}
+        capabilities:
+          - TEXT_GENERATION
+          - STREAMING
+          - JSON_MODE
+          - LONG_CONTEXT
+        scenarios:
+          - SCRIPT_GENERATION
+          - STORYBOARD_PLANNING
+          - SHOT_PROMPT_REWRITE
+          - ASSET_TAGGING
+        priority: 70
+        enabled: ${QWEN_ENABLED:false}
+        fallback-route-ids:
+          - default-chat
+        timeout: 60s
+      - id: qwen-vl
+        provider: qwen
+        model: ${QWEN_VL_MODEL:qwen-vl-max}
+        capabilities:
+          - VISION_UNDERSTANDING
+          - TEXT_GENERATION
+          - STREAMING
+        scenarios:
+          - ASSET_TAGGING
+          - STORYBOARD_PLANNING
+          - SHOT_PROMPT_REWRITE
+        priority: 75
+        enabled: ${QWEN_VL_ENABLED:${QWEN_ENABLED:false}}
+        fallback-route-ids:
+          - qwen-plus
+          - default-chat
+        timeout: 90s
+      - id: gemini-flash
+        provider: gemini
+        model: ${GEMINI_FLASH_MODEL:gemini-2.5-flash}
+        capabilities:
+          - TEXT_GENERATION
+          - STREAMING
+          - JSON_MODE
+          - LONG_CONTEXT
+        scenarios:
+          - SCRIPT_GENERATION
+          - STORYBOARD_PLANNING
+          - SHOT_PROMPT_REWRITE
+          - ASSET_TAGGING
+        priority: 65
+        enabled: ${GEMINI_ENABLED:false}
+        fallback-route-ids:
+          - qwen-plus
+          - default-chat
+        timeout: 60s
+      - id: gemini-pro
+        provider: gemini
+        model: ${GEMINI_PRO_MODEL:gemini-2.5-pro}
+        capabilities:
+          - TEXT_GENERATION
+          - STREAMING
+          - JSON_MODE
+          - LONG_CONTEXT
+        scenarios:
+          - STORYBOARD_PLANNING
+          - SCRIPT_GENERATION
+        priority: 85
+        enabled: ${GEMINI_PRO_ENABLED:${GEMINI_ENABLED:false}}
+        fallback-route-ids:
+          - gemini-flash
+          - default-chat
+        timeout: 120s
+      - id: gemini-vision
+        provider: gemini
+        model: ${GEMINI_VISION_MODEL:gemini-2.5-flash}
+        capabilities:
+          - VISION_UNDERSTANDING
+          - TEXT_GENERATION
+          - STREAMING
+        scenarios:
+          - ASSET_TAGGING
+          - STORYBOARD_PLANNING
+          - SHOT_PROMPT_REWRITE
+        priority: 68
+        enabled: ${GEMINI_VISION_ENABLED:${GEMINI_ENABLED:false}}
+        fallback-route-ids:
+          - qwen-vl
+          - gemini-flash
+          - default-chat
+        timeout: 90s
