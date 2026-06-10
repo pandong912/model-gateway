@@ -2,9 +2,12 @@ package com.example.kling.inference.client.model;
 
 import com.example.kling.inference.contract.enums.GenerationType;
 import com.example.kling.inference.contract.model.CallbackSpec;
+import com.example.kling.inference.contract.model.ImageGenerationPayload;
 import com.example.kling.inference.contract.model.InferenceCaller;
 import com.example.kling.inference.contract.model.InputAsset;
+import com.example.kling.inference.contract.model.KlingGenerationPayload;
 import com.example.kling.inference.contract.model.KlingGenerationRequest;
+import com.example.kling.inference.contract.model.VideoGenerationPayload;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -149,8 +152,9 @@ public class KlingGenerationRequestBuilder {
         return this;
     }
 
-    public KlingGenerationRequest build() {
-        return new KlingGenerationRequest(
+    public KlingGenerationRequest<? extends KlingGenerationPayload> build() {
+        KlingGenerationPayload payload = buildPayload();
+        return new KlingGenerationRequest<>(
                 requestId,
                 idempotencyKey,
                 caller,
@@ -158,6 +162,25 @@ public class KlingGenerationRequestBuilder {
                 scenario,
                 model,
                 modelVersion,
+                priority,
+                callback,
+                metadata,
+                payload
+        );
+    }
+
+    private KlingGenerationPayload buildPayload() {
+        if (generationType == GenerationType.IMAGE_GENERATION || generationType == GenerationType.IMAGE_EDITING) {
+            return new ImageGenerationPayload(
+                    prompt,
+                    negativePrompt,
+                    List.copyOf(inputAssets),
+                    resolution,
+                    seed,
+                    parameters
+            );
+        }
+        return new VideoGenerationPayload(
                 prompt,
                 negativePrompt,
                 List.copyOf(inputAssets),
@@ -165,10 +188,7 @@ public class KlingGenerationRequestBuilder {
                 aspectRatio,
                 resolution,
                 seed,
-                priority,
-                callback,
-                parameters,
-                metadata
+                parameters
         );
     }
 }

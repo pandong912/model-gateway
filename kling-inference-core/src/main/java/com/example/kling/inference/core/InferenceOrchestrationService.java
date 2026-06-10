@@ -3,6 +3,7 @@ package com.example.kling.inference.core;
 import com.example.kling.inference.contract.model.CancelJobRequest;
 import com.example.kling.inference.contract.model.KlingGenerationEvent;
 import com.example.kling.inference.contract.model.KlingGenerationJob;
+import com.example.kling.inference.contract.model.KlingGenerationPayload;
 import com.example.kling.inference.contract.model.KlingGenerationRequest;
 import java.time.Duration;
 import reactor.core.publisher.Flux;
@@ -10,7 +11,7 @@ import reactor.core.publisher.Mono;
 
 public interface InferenceOrchestrationService {
 
-    Mono<KlingGenerationJob> submit(KlingGenerationRequest request);
+    Mono<KlingGenerationJob> submit(KlingGenerationRequest<? extends KlingGenerationPayload> request);
 
     Mono<KlingGenerationJob> getJob(String jobId);
 

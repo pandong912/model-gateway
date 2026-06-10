@@ -5,6 +5,7 @@ import com.example.kling.inference.client.KlingInferenceClientOptions;
 import com.example.kling.inference.client.WebClientKlingInferenceClient;
 import com.example.kling.inference.client.model.KlingGenerationRequestBuilder;
 import com.example.kling.inference.contract.model.InferenceCaller;
+import com.example.kling.inference.contract.model.KlingGenerationPayload;
 import com.example.kling.inference.contract.model.KlingGenerationRequest;
 import com.example.kling.inference.contract.model.KlingGenerationResult;
 import java.time.Duration;
@@ -23,9 +24,9 @@ public class KlingImageGenerationSdkExample {
                 WebClientKlingInferenceClient.IMAGE_GENERATIONS_PATH
         );
 
-        KlingGenerationRequest request = KlingGenerationRequestBuilder
+        KlingGenerationRequest<? extends KlingGenerationPayload> request = KlingGenerationRequestBuilder
                 .imageGeneration("A premium ecommerce hero image of a ceramic coffee mug on a warm wooden table")
-                .idempotencyKey("demo-image-generation-mug-001")
+                .idempotencyKey("demo-image-generation-mug-002")
                 .caller(new InferenceCaller(
                         "creator-tools",
                         "INTERNAL_SERVICE",

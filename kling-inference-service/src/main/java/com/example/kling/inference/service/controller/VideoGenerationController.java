@@ -4,6 +4,7 @@ import com.example.kling.inference.contract.model.CancelJobRequest;
 import com.example.kling.inference.contract.model.KlingGenerationEvent;
 import com.example.kling.inference.contract.model.KlingGenerationJob;
 import com.example.kling.inference.contract.model.KlingGenerationRequest;
+import com.example.kling.inference.contract.model.VideoGenerationPayload;
 import com.example.kling.inference.core.InferenceOrchestrationService;
 import jakarta.validation.Valid;
 import java.time.Duration;
@@ -37,7 +38,7 @@ public class VideoGenerationController {
 
     @PostMapping
     public Mono<ResponseEntity<KlingGenerationJob>> submit(
-            @Valid @RequestBody KlingGenerationRequest request,
+            @Valid @RequestBody KlingGenerationRequest<VideoGenerationPayload> request,
             @RequestParam(name = "wait", defaultValue = "false") boolean wait,
             @RequestParam(name = "timeoutSeconds", required = false) Long timeoutSeconds
     ) {

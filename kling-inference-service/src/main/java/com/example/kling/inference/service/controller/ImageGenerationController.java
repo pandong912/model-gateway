@@ -2,6 +2,7 @@ package com.example.kling.inference.service.controller;
 
 import com.example.kling.inference.contract.enums.GenerationType;
 import com.example.kling.inference.contract.model.CancelJobRequest;
+import com.example.kling.inference.contract.model.ImageGenerationPayload;
 import com.example.kling.inference.contract.model.KlingGenerationEvent;
 import com.example.kling.inference.contract.model.KlingGenerationJob;
 import com.example.kling.inference.contract.model.KlingGenerationRequest;
@@ -39,7 +40,7 @@ public class ImageGenerationController {
 
     @PostMapping
     public Mono<ResponseEntity<KlingGenerationJob>> submit(
-            @Valid @RequestBody KlingGenerationRequest request,
+            @Valid @RequestBody KlingGenerationRequest<ImageGenerationPayload> request,
             @RequestParam(name = "wait", defaultValue = "false") boolean wait,
             @RequestParam(name = "timeoutSeconds", required = false) Long timeoutSeconds
     ) {
@@ -80,7 +81,7 @@ public class ImageGenerationController {
         return orchestrationService.cancelJob(jobId, request == null ? new CancelJobRequest(null, null, null) : request);
     }
 
-    private void validateImageGenerationRequest(KlingGenerationRequest request) {
+    private void validateImageGenerationRequest(KlingGenerationRequest<ImageGenerationPayload> request) {
         if (request.generationType() != GenerationType.IMAGE_GENERATION
                 && request.generationType() != GenerationType.IMAGE_EDITING) {
             throw new ResponseStatusException(

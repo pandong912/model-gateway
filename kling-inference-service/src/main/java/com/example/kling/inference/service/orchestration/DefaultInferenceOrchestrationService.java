@@ -7,6 +7,7 @@ import com.example.kling.inference.contract.model.InferenceCaller;
 import com.example.kling.inference.contract.model.InferenceError;
 import com.example.kling.inference.contract.model.KlingGenerationEvent;
 import com.example.kling.inference.contract.model.KlingGenerationJob;
+import com.example.kling.inference.contract.model.KlingGenerationPayload;
 import com.example.kling.inference.contract.model.KlingGenerationRequest;
 import com.example.kling.inference.core.InferenceBackendClient;
 import com.example.kling.inference.core.InferenceEventPublisher;
@@ -35,7 +36,7 @@ public class DefaultInferenceOrchestrationService implements InferenceOrchestrat
     private final InferenceBackendClient backendClient;
 
     @Override
-    public Mono<KlingGenerationJob> submit(KlingGenerationRequest request) {
+    public Mono<KlingGenerationJob> submit(KlingGenerationRequest<? extends KlingGenerationPayload> request) {
         String callerId = callerId(request);
         if (!isBlank(request.idempotencyKey())) {
             return jobRepository.findByIdempotencyKey(callerId, request.idempotencyKey())
@@ -86,7 +87,7 @@ public class DefaultInferenceOrchestrationService implements InferenceOrchestrat
         });
     }
 
-    private Mono<KlingGenerationJob> createAndSubmit(KlingGenerationRequest request, String callerId) {
+    private Mono<KlingGenerationJob> createAndSubmit(KlingGenerationRequest<? extends KlingGenerationPayload> request, String callerId) {
         Instant now = Instant.now();
         KlingGenerationJob created = new KlingGenerationJob(
                 "kg_" + UUID.randomUUID().toString().replace("-", ""),
@@ -203,7 +204,7 @@ public class DefaultInferenceOrchestrationService implements InferenceOrchestrat
         );
     }
 
-    private String callerId(KlingGenerationRequest request) {
+    private String callerId(KlingGenerationRequest<? extends KlingGenerationPayload> request) {
         InferenceCaller caller = request.caller();
         if (caller == null || isBlank(caller.callerId())) {
             return "anonymous";
@@ -211,7 +212,7 @@ public class DefaultInferenceOrchestrationService implements InferenceOrchestrat
         return caller.callerId();
     }
 
-    private Map<String, Object> metadata(KlingGenerationRequest request) {
+    private Map<String, Object> metadata(KlingGenerationRequest<? extends KlingGenerationPayload> request) {
         String scenario = request.scenario() == null ? "" : request.scenario();
         String model = request.model() == null ? "" : request.model();
         return Map.of(

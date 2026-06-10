@@ -6,6 +6,7 @@ import com.example.kling.inference.client.WebClientKlingInferenceClient;
 import com.example.kling.inference.client.model.KlingGenerationRequestBuilder;
 import com.example.kling.inference.contract.model.InferenceCaller;
 import com.example.kling.inference.contract.model.KlingGenerationJob;
+import com.example.kling.inference.contract.model.KlingGenerationPayload;
 import com.example.kling.inference.contract.model.KlingGenerationRequest;
 import com.example.kling.inference.contract.model.KlingGenerationResult;
 import java.time.Duration;
@@ -24,9 +25,9 @@ public class KlingVideoGenerationSdkExample {
                 )
         );
 
-        KlingGenerationRequest request = KlingGenerationRequestBuilder
+        KlingGenerationRequest<? extends KlingGenerationPayload> request = KlingGenerationRequestBuilder
                 .textToVideo("A cinematic shot of a futuristic city at sunrise")
-                .idempotencyKey("demo-futuristic-city-001")
+                .idempotencyKey("demo-futuristic-city-002")
                 .caller(new InferenceCaller(
                         "model-gateway",
                         "INTERNAL_SERVICE",

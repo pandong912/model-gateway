@@ -4,9 +4,12 @@ import com.example.kling.inference.contract.enums.AssetType;
 import com.example.kling.inference.contract.enums.GenerationType;
 import com.example.kling.inference.contract.enums.InferenceJobStatus;
 import com.example.kling.inference.contract.model.BackendTaskEvent;
+import com.example.kling.inference.contract.model.ImageGenerationPayload;
+import com.example.kling.inference.contract.model.KlingGenerationPayload;
 import com.example.kling.inference.contract.model.OutputAsset;
 import com.example.kling.inference.contract.model.KlingGenerationRequest;
 import com.example.kling.inference.contract.model.KlingGenerationResult;
+import com.example.kling.inference.contract.model.VideoGenerationPayload;
 import com.example.kling.inference.core.InferenceBackendClient;
 import com.example.kling.inference.service.event.BackendTaskEventHandler;
 import java.time.Duration;
@@ -27,7 +30,7 @@ public class MockKlingInferenceBackendClient implements InferenceBackendClient {
     private final BackendTaskEventHandler eventHandler;
 
     @Override
-    public Mono<BackendSubmission> submit(KlingGenerationRequest request) {
+    public Mono<BackendSubmission> submit(KlingGenerationRequest<? extends KlingGenerationPayload> request) {
         String backendTaskId = "mock_kt_" + UUID.randomUUID().toString().replace("-", "");
         BackendSubmission submission = new BackendSubmission(
                 backendTaskId,
@@ -43,7 +46,10 @@ public class MockKlingInferenceBackendClient implements InferenceBackendClient {
         return Mono.empty();
     }
 
-    private Mono<Void> simulateAsyncCompletion(String backendTaskId, KlingGenerationRequest request) {
+    private Mono<Void> simulateAsyncCompletion(
+            String backendTaskId,
+            KlingGenerationRequest<? extends KlingGenerationPayload> request
+    ) {
         return Mono.delay(Duration.ofSeconds(1))
                 .then(eventHandler.handle(event(backendTaskId, InferenceJobStatus.RUNNING, 10, null, request)).then())
                 .then(Mono.delay(Duration.ofSeconds(1)))
@@ -57,7 +63,7 @@ public class MockKlingInferenceBackendClient implements InferenceBackendClient {
             InferenceJobStatus status,
             int progress,
             KlingGenerationResult result,
-            KlingGenerationRequest request
+            KlingGenerationRequest<? extends KlingGenerationPayload> request
     ) {
         return new BackendTaskEvent(
                 backendTaskId,
@@ -73,7 +79,7 @@ public class MockKlingInferenceBackendClient implements InferenceBackendClient {
         );
     }
 
-    private KlingGenerationResult result(KlingGenerationRequest request) {
+    private KlingGenerationResult result(KlingGenerationRequest<? extends KlingGenerationPayload> request) {
         if (request.generationType() == GenerationType.IMAGE_GENERATION
                 || request.generationType() == GenerationType.IMAGE_EDITING) {
             return imageResult(request);
@@ -81,7 +87,8 @@ public class MockKlingInferenceBackendClient implements InferenceBackendClient {
         return videoResult(request);
     }
 
-    private KlingGenerationResult videoResult(KlingGenerationRequest request) {
+    private KlingGenerationResult videoResult(KlingGenerationRequest<? extends KlingGenerationPayload> request) {
+        VideoGenerationPayload payload = (VideoGenerationPayload) request.payload();
         OutputAsset video = new OutputAsset(
                 "asset_" + UUID.randomUUID().toString().replace("-", ""),
                 AssetType.VIDEO,
@@ -89,7 +96,7 @@ public class MockKlingInferenceBackendClient implements InferenceBackendClient {
                 "video/mp4",
                 null,
                 null,
-                request.durationSeconds(),
+                payload.durationSeconds(),
                 Map.of("mock", true)
         );
         return new KlingGenerationResult(
@@ -97,12 +104,13 @@ public class MockKlingInferenceBackendClient implements InferenceBackendClient {
                 "https://example.internal/mock-kling/covers/" + request.requestId() + ".jpg",
                 request.model(),
                 request.modelVersion(),
-                request.seed(),
+                payload.seed(),
                 Map.of("backend", "mock-kling-internal")
         );
     }
 
-    private KlingGenerationResult imageResult(KlingGenerationRequest request) {
+    private KlingGenerationResult imageResult(KlingGenerationRequest<? extends KlingGenerationPayload> request) {
+        ImageGenerationPayload payload = (ImageGenerationPayload) request.payload();
         OutputAsset image = new OutputAsset(
                 "asset_" + UUID.randomUUID().toString().replace("-", ""),
                 AssetType.IMAGE,
@@ -118,7 +126,7 @@ public class MockKlingInferenceBackendClient implements InferenceBackendClient {
                 "https://example.internal/mock-kling/images/" + request.requestId() + ".png",
                 request.model(),
                 request.modelVersion(),
-                request.seed(),
+                payload.seed(),
                 Map.of("backend", "mock-kling-internal")
         );
     }

@@ -6,6 +6,7 @@ import com.example.kling.inference.contract.enums.InferenceJobStatus;
 import com.example.kling.inference.contract.model.InferenceCaller;
 import com.example.kling.inference.contract.model.InferenceError;
 import com.example.kling.inference.contract.model.KlingGenerationJob;
+import com.example.kling.inference.contract.model.KlingGenerationPayload;
 import com.example.kling.inference.contract.model.KlingGenerationRequest;
 import com.example.kling.inference.contract.model.KlingGenerationResult;
 import com.example.kling.inference.core.InferenceJobRepository;
@@ -31,7 +32,7 @@ public class MybatisPlusInferenceJobRepository implements InferenceJobRepository
     private final ObjectMapper objectMapper;
 
     @Override
-    public Mono<KlingGenerationJob> save(KlingGenerationJob job, KlingGenerationRequest request) {
+    public Mono<KlingGenerationJob> save(KlingGenerationJob job, KlingGenerationRequest<? extends KlingGenerationPayload> request) {
         return Mono.fromCallable(() -> {
             KlingInferenceJobEntity entity = toEntity(job, request);
             if (mapper.selectById(job.jobId()) == null) {
@@ -88,7 +89,7 @@ public class MybatisPlusInferenceJobRepository implements InferenceJobRepository
                 .flatMap(entity -> entity == null ? Mono.empty() : Mono.just(toDomain(entity)));
     }
 
-    private KlingInferenceJobEntity toEntity(KlingGenerationJob job, KlingGenerationRequest request) {
+    private KlingInferenceJobEntity toEntity(KlingGenerationJob job, KlingGenerationRequest<? extends KlingGenerationPayload> request) {
         KlingInferenceJobEntity entity = new KlingInferenceJobEntity();
         InferenceCaller caller = request.caller();
         entity.setJobId(job.jobId());

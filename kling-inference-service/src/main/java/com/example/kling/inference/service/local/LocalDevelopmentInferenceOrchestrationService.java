@@ -5,6 +5,7 @@ import com.example.kling.inference.contract.enums.InferenceJobStatus;
 import com.example.kling.inference.contract.model.CancelJobRequest;
 import com.example.kling.inference.contract.model.KlingGenerationEvent;
 import com.example.kling.inference.contract.model.KlingGenerationJob;
+import com.example.kling.inference.contract.model.KlingGenerationPayload;
 import com.example.kling.inference.contract.model.KlingGenerationRequest;
 import com.example.kling.inference.core.InferenceOrchestrationService;
 import java.time.Duration;
@@ -30,7 +31,7 @@ public class LocalDevelopmentInferenceOrchestrationService implements InferenceO
     private final ConcurrentMap<String, Sinks.Many<KlingGenerationEvent>> eventSinks = new ConcurrentHashMap<>();
 
     @Override
-    public Mono<KlingGenerationJob> submit(KlingGenerationRequest request) {
+    public Mono<KlingGenerationJob> submit(KlingGenerationRequest<? extends KlingGenerationPayload> request) {
         String jobId = "kg_" + UUID.randomUUID().toString().replace("-", "");
         Instant now = Instant.now();
         KlingGenerationJob job = new KlingGenerationJob(

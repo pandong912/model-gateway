@@ -1,12 +1,13 @@
 package com.example.kling.inference.core;
 
 import com.example.kling.inference.contract.model.KlingGenerationJob;
+import com.example.kling.inference.contract.model.KlingGenerationPayload;
 import com.example.kling.inference.contract.model.KlingGenerationRequest;
 import reactor.core.publisher.Mono;
 
 public interface InferenceJobRepository {
 
-    Mono<KlingGenerationJob> save(KlingGenerationJob job, KlingGenerationRequest request);
+    Mono<KlingGenerationJob> save(KlingGenerationJob job, KlingGenerationRequest<? extends KlingGenerationPayload> request);
 
     Mono<KlingGenerationJob> update(KlingGenerationJob job);
 

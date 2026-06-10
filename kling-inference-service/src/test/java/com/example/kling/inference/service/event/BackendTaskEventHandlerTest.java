@@ -10,6 +10,7 @@ import com.example.kling.inference.contract.model.BackendTaskEvent;
 import com.example.kling.inference.contract.model.OutputAsset;
 import com.example.kling.inference.contract.model.KlingGenerationEvent;
 import com.example.kling.inference.contract.model.KlingGenerationJob;
+import com.example.kling.inference.contract.model.KlingGenerationPayload;
 import com.example.kling.inference.contract.model.KlingGenerationRequest;
 import com.example.kling.inference.contract.model.KlingGenerationResult;
 import com.example.kling.inference.core.InferenceEventPublisher;
@@ -84,7 +85,10 @@ class BackendTaskEventHandlerTest {
         }
 
         @Override
-        public Mono<KlingGenerationJob> save(KlingGenerationJob job, KlingGenerationRequest request) {
+        public Mono<KlingGenerationJob> save(
+                KlingGenerationJob job,
+                KlingGenerationRequest<? extends KlingGenerationPayload> request
+        ) {
             this.job.set(job);
             return Mono.just(job);
         }

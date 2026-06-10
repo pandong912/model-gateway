@@ -27,5 +27,10 @@ kling:
   inference:
     backend:
       base-url: ${KLING_INFERENCE_BACKEND_BASE_URL:http://localhost:8099}
-      submit-path: ${KLING_INFERENCE_BACKEND_SUBMIT_PATH:/internal/inference/tasks}
+      text-to-video-submit-path: ${KLING_INFERENCE_BACKEND_TEXT_TO_VIDEO_SUBMIT_PATH:/v1/videos/text2video}
+      image-to-video-submit-path: ${KLING_INFERENCE_BACKEND_IMAGE_TO_VIDEO_SUBMIT_PATH:/v1/videos/image2video}
+      image-generation-submit-path: ${KLING_INFERENCE_BACKEND_IMAGE_GENERATION_SUBMIT_PATH:/v1/images/generations}
+      image-editing-submit-path: ${KLING_INFERENCE_BACKEND_IMAGE_EDITING_SUBMIT_PATH:/v1/images/edits}
       cancel-path-template: ${KLING_INFERENCE_BACKEND_CANCEL_PATH_TEMPLATE:/internal/inference/tasks/{backendTaskId}/cancel}
+      access-key: ${KLING_INFERENCE_BACKEND_ACCESS_KEY:}
+      secret-key: ${KLING_INFERENCE_BACKEND_SECRET_KEY:}
