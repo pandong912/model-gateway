@@ -13,7 +13,6 @@ public record KlingGenerationRequest<T extends KlingGenerationPayload>(
         @NotNull GenerationType generationType,
         String scenario,
         String model,
-        String modelVersion,
         Integer priority,
         @Valid CallbackSpec callback,
         Map<String, Object> metadata,

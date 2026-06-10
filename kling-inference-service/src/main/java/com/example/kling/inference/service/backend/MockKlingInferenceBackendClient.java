@@ -103,7 +103,6 @@ public class MockKlingInferenceBackendClient implements InferenceBackendClient {
                 List.of(video),
                 "https://example.internal/mock-kling/covers/" + request.requestId() + ".jpg",
                 request.model(),
-                request.modelVersion(),
                 payload.seed(),
                 Map.of("backend", "mock-kling-internal")
         );
@@ -125,7 +124,6 @@ public class MockKlingInferenceBackendClient implements InferenceBackendClient {
                 List.of(image),
                 "https://example.internal/mock-kling/images/" + request.requestId() + ".png",
                 request.model(),
-                request.modelVersion(),
                 payload.seed(),
                 Map.of("backend", "mock-kling-internal")
         );

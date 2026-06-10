@@ -7,7 +7,6 @@ public record KlingGenerationResult(
         List<OutputAsset> outputs,
         String coverUrl,
         String model,
-        String modelVersion,
         Integer seed,
         Map<String, Object> metadata
 ) {

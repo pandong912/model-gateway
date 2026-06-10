@@ -3,12 +3,13 @@ package com.example.kling.inference.client.example;
 import com.example.kling.inference.client.KlingInferenceClient;
 import com.example.kling.inference.client.KlingInferenceClientOptions;
 import com.example.kling.inference.client.WebClientKlingInferenceClient;
-import com.example.kling.inference.client.model.KlingGenerationRequestBuilder;
+import com.example.kling.inference.contract.enums.GenerationType;
+import com.example.kling.inference.contract.model.ImageGenerationPayload;
 import com.example.kling.inference.contract.model.InferenceCaller;
-import com.example.kling.inference.contract.model.KlingGenerationPayload;
 import com.example.kling.inference.contract.model.KlingGenerationRequest;
 import com.example.kling.inference.contract.model.KlingGenerationResult;
 import java.time.Duration;
+import java.util.List;
 import java.util.Map;
 
 public class KlingImageGenerationSdkExample {
@@ -24,25 +25,37 @@ public class KlingImageGenerationSdkExample {
                 WebClientKlingInferenceClient.IMAGE_GENERATIONS_PATH
         );
 
-        KlingGenerationRequest<? extends KlingGenerationPayload> request = KlingGenerationRequestBuilder
-                .imageGeneration("A premium ecommerce hero image of a ceramic coffee mug on a warm wooden table")
-                .idempotencyKey("demo-image-generation-mug-002")
-                .caller(new InferenceCaller(
+        ImageGenerationPayload payload = new ImageGenerationPayload(
+                "A premium ecommerce hero image of a ceramic coffee mug on a warm wooden table",
+                null,
+                List.of(),
+                "1k",
+                20260610,
+                Map.of(
+                        "style", "photorealistic",
+                        "background", "warm studio lighting"
+                )
+        );
+
+        KlingGenerationRequest<ImageGenerationPayload> request = new KlingGenerationRequest<>(
+                "req-image-generation-demo-001",
+                "demo-image-generation-mug-003",
+                new InferenceCaller(
                         "creator-tools",
                         "INTERNAL_SERVICE",
                         "tenant-a",
                         "project-a",
                         "user-a",
                         Map.of()
-                ))
-                .scenario("ecommerce-hero-image")
-                .resolution("1024x1024")
-                .seed(20260610)
-                .parameters(Map.of(
-                        "style", "photorealistic",
-                        "background", "warm studio lighting"
-                ))
-                .build();
+                ),
+                GenerationType.IMAGE_GENERATION,
+                "ecommerce-hero-image",
+                "kling-v3",
+                5,
+                null,
+                Map.of(),
+                payload
+        );
 
         KlingGenerationResult result = client.generateAsync(request).join();
         System.out.println("image generation result=" + result);

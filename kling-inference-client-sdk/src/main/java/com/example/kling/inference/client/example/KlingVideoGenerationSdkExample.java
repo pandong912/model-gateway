@@ -3,13 +3,14 @@ package com.example.kling.inference.client.example;
 import com.example.kling.inference.client.KlingInferenceClient;
 import com.example.kling.inference.client.KlingInferenceClientOptions;
 import com.example.kling.inference.client.WebClientKlingInferenceClient;
-import com.example.kling.inference.client.model.KlingGenerationRequestBuilder;
+import com.example.kling.inference.contract.enums.GenerationType;
 import com.example.kling.inference.contract.model.InferenceCaller;
 import com.example.kling.inference.contract.model.KlingGenerationJob;
-import com.example.kling.inference.contract.model.KlingGenerationPayload;
 import com.example.kling.inference.contract.model.KlingGenerationRequest;
 import com.example.kling.inference.contract.model.KlingGenerationResult;
+import com.example.kling.inference.contract.model.VideoGenerationPayload;
 import java.time.Duration;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -25,22 +26,36 @@ public class KlingVideoGenerationSdkExample {
                 )
         );
 
-        KlingGenerationRequest<? extends KlingGenerationPayload> request = KlingGenerationRequestBuilder
-                .textToVideo("A cinematic shot of a futuristic city at sunrise")
-                .idempotencyKey("demo-futuristic-city-002")
-                .caller(new InferenceCaller(
+        VideoGenerationPayload payload = new VideoGenerationPayload(
+                "A cinematic shot of a futuristic city at sunrise",
+                null,
+                List.of(),
+                5,
+                "16:9",
+                "std",
+                null,
+                Map.of()
+        );
+
+        KlingGenerationRequest<VideoGenerationPayload> request = new KlingGenerationRequest<>(
+                "req-text-to-video-demo-001",
+                "demo-futuristic-city-003",
+                new InferenceCaller(
                         "model-gateway",
                         "INTERNAL_SERVICE",
                         "tenant-a",
                         "project-a",
                         "user-a",
                         Map.of()
-                ))
-                .scenario("ai-video-storyboard")
-                .durationSeconds(5)
-                .aspectRatio("16:9")
-                .resolution("1080p")
-                .build();
+                ),
+                GenerationType.TEXT_TO_VIDEO,
+                "ai-video-storyboard",
+                "kling-v3",
+                5,
+                null,
+                Map.of(),
+                payload
+        );
 
         String jobId = client.submit(request).block().jobId();
         client.watchJob(jobId).subscribe(event -> System.out.println("event=" + event));

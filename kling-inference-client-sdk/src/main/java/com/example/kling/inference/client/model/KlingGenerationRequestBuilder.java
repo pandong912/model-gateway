@@ -37,6 +37,7 @@ public class KlingGenerationRequestBuilder {
     public static KlingGenerationRequestBuilder textToVideo(String prompt) {
         return new KlingGenerationRequestBuilder()
                 .generationType(GenerationType.TEXT_TO_VIDEO)
+                .model("kling-v3")
                 .prompt(prompt);
     }
 
@@ -50,7 +51,7 @@ public class KlingGenerationRequestBuilder {
     public static KlingGenerationRequestBuilder imageGeneration(String prompt) {
         return new KlingGenerationRequestBuilder()
                 .generationType(GenerationType.IMAGE_GENERATION)
-                .model("kling-image")
+                .model("kling-v3")
                 .prompt(prompt);
     }
 
@@ -161,7 +162,6 @@ public class KlingGenerationRequestBuilder {
                 generationType,
                 scenario,
                 model,
-                modelVersion,
                 priority,
                 callback,
                 metadata,

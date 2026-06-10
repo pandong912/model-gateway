@@ -26,7 +26,7 @@ class KlingGenerationRequestBuilderTest {
         assertThat(request.requestId()).startsWith("req_");
         assertThat(request.idempotencyKey()).isEqualTo("idem-001");
         assertThat(request.generationType()).isEqualTo(GenerationType.TEXT_TO_VIDEO);
-        assertThat(request.model()).isEqualTo("kling-video");
+        assertThat(request.model()).isEqualTo("kling-v3");
         assertThat(request.caller().callerId()).isEqualTo("model-gateway");
         assertThat(request.payload()).isInstanceOf(VideoGenerationPayload.class);
         VideoGenerationPayload payload = (VideoGenerationPayload) request.payload();
@@ -43,7 +43,7 @@ class KlingGenerationRequestBuilderTest {
                 .build();
 
         assertThat(request.generationType()).isEqualTo(GenerationType.IMAGE_GENERATION);
-        assertThat(request.model()).isEqualTo("kling-image");
+        assertThat(request.model()).isEqualTo("kling-v3");
         assertThat(request.payload()).isInstanceOf(ImageGenerationPayload.class);
         ImageGenerationPayload payload = (ImageGenerationPayload) request.payload();
         assertThat(payload.prompt()).isEqualTo("generate a product hero image");

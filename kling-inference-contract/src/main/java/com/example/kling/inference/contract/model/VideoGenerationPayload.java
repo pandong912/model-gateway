@@ -11,7 +11,7 @@ public record VideoGenerationPayload(
         List<@Valid InputAsset> inputAssets,
         Integer durationSeconds,
         String aspectRatio,
-        String resolution,
+        String mode,
         Integer seed,
         Map<String, Object> parameters
 ) implements KlingGenerationPayload {
