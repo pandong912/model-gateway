@@ -1,0 +1,5 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://k8s-dbtunnel-ziyuanqi-e9f5c582ed-140eb1e13e2273f0.elb.us-east-1.amazonaws.com:5432/model_gateway
+    username: ziyuanqishuo
+    password: y6BZMpq6k

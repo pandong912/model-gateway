@@ -32,7 +32,7 @@ export MODEL_GATEWAY_DATASOURCE_USERNAME=model_gateway
 export MODEL_GATEWAY_DATASOURCE_PASSWORD=your-password
 ```
 
-数据库 schema 和 PromptTemplate 初始数据由 `model-gateway-db-migration` 的独立启动入口运行 Flyway 管理，迁移脚本位于 `model-gateway-db-migration/src/main/resources/db/migration`。`model-gateway-service` 启动时不再自动执行 Flyway；`application.yml` 中的 `model.gateway.routes` 仍会作为运行期兜底种子数据导入数据库；如果数据库里已存在同 ID 路由，不会覆盖已有数据。
+数据库 schema 和 PromptTemplate 初始数据由 `model-gateway-db-migration` 的独立启动入口运行 Flyway 管理，迁移脚本位于 `model-gateway-db-migration/src/main/resources/db/migration`。模型路由以数据库为准，初始化数据可从 `model-gateway-db-migration/src/main/resources/db/data/seed_model_routes.sql` 手工导入；`model-gateway-service` 启动时不再自动执行 Flyway 或写入默认路由。
 
 调用通用接口：
 

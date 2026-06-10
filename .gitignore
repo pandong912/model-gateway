@@ -1,5 +1,8 @@
 target/
 data/
+!model-gateway-db-migration/src/main/resources/db/data/
+model-gateway-db-migration/src/main/resources/db/data/*
+!model-gateway-db-migration/src/main/resources/db/data/seed_model_routes.sql
 *.class
 *.log
 
