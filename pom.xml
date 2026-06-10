@@ -28,6 +28,10 @@
         <module>model-gateway-service</module>
         <module>model-gateway-client-starter</module>
         <module>model-gateway-examples</module>
+        <module>kling-inference-contract</module>
+        <module>kling-inference-core</module>
+        <module>kling-inference-service</module>
+        <module>kling-inference-client-sdk</module>
         <module>solution-ecommerce-api</module>
         <module>solution-ecommerce-worker</module>
     </modules>

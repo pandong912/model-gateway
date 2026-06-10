@@ -232,7 +232,7 @@ mvn -pl model-gateway-service -am spring-boot:run
 mvn -pl solution-ecommerce-worker -am compile
 
 mvn -pl solution-ecommerce-worker exec:java \
-  -Dexec.mainClass=com.example.modelgateway.ecommerce.worker.EcommerceAssetWorkflowRunner \
+  -Dexec.mainClass=com.example.solution.ecommerce.worker.EcommerceAssetWorkflowRunner \
   -Dexec.args="--product-info 项链 --product-images /path/p1.png,/path/p2.png --model-images /path/m1.png --output-file /tmp/ecommerce-result.json"
 ```
 
@@ -240,7 +240,7 @@ mvn -pl solution-ecommerce-worker exec:java \
 
 ```bash
 mvn -pl solution-ecommerce-worker exec:java \
-  -Dexec.mainClass=com.example.modelgateway.ecommerce.worker.EcommerceAssetWorkerApplication
+  -Dexec.mainClass=com.example.solution.ecommerce.worker.EcommerceAssetWorkerApplication
 ```
 
 图片或视频理解请求可以在 `messages[].media` 中传入媒体。小文件可传 `base64`，大文件建议先上传到 Gemini Files API 后通过 `metadata.geminiFileUri` 传入文件 URI：
