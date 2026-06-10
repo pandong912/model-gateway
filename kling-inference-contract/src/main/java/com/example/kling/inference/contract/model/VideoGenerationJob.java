@@ -8,9 +8,13 @@ import java.util.Map;
 public record VideoGenerationJob(
         String jobId,
         String requestId,
+        String idempotencyKey,
+        String callerId,
         GenerationType generationType,
         InferenceJobStatus status,
         Integer progress,
+        String backendTaskId,
+        String backendProvider,
         String traceId,
         Instant createdAt,
         Instant updatedAt,

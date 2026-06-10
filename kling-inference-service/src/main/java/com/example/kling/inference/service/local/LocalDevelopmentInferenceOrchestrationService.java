@@ -15,6 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeoutException;
 import org.springframework.http.HttpStatus;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
@@ -22,6 +23,7 @@ import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 
 @Service
+@Profile("local-dev")
 public class LocalDevelopmentInferenceOrchestrationService implements InferenceOrchestrationService {
 
     private final ConcurrentMap<String, VideoGenerationJob> jobs = new ConcurrentHashMap<>();
@@ -34,9 +36,13 @@ public class LocalDevelopmentInferenceOrchestrationService implements InferenceO
         VideoGenerationJob job = new VideoGenerationJob(
                 jobId,
                 request.requestId(),
+                request.idempotencyKey(),
+                request.caller() == null ? "anonymous" : request.caller().callerId(),
                 request.generationType(),
                 InferenceJobStatus.QUEUED,
                 0,
+                null,
+                null,
                 UUID.randomUUID().toString(),
                 now,
                 now,
@@ -70,7 +76,6 @@ public class LocalDevelopmentInferenceOrchestrationService implements InferenceO
                 return Mono.just(job);
             }
             return watchJob(jobId)
-                    .filter(event -> event.status() != null && event.status().isTerminal())
                     .next()
                     .map(event -> jobs.get(jobId))
                     .timeout(timeout)
@@ -100,9 +105,13 @@ public class LocalDevelopmentInferenceOrchestrationService implements InferenceO
             VideoGenerationJob cancelled = new VideoGenerationJob(
                     current.jobId(),
                     current.requestId(),
+                    current.idempotencyKey(),
+                    current.callerId(),
                     current.generationType(),
                     InferenceJobStatus.CANCELLED,
                     current.progress(),
+                    current.backendTaskId(),
+                    current.backendProvider(),
                     current.traceId(),
                     current.createdAt(),
                     now,

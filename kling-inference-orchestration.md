@@ -97,9 +97,33 @@ VideoGenerationRequest request = new VideoGenerationRequest(
 CompletableFuture<VideoGenerationResult> future = client.generateAsync(request);
 ```
 
+## 当前生产闭环实现
+
+- `kling_inference_jobs` 持久化任务快照，支持 `caller_id + idempotency_key` 幂等提交和 `backend_task_id` 反查。
+- `kling_inference_events` 持久化任务事件，作为 Wait/SSE 唤醒和后续审计、排障的数据基础。
+- 默认启用 `MockKlingInferenceBackendClient`，用于本地验证 `submit -> backend event -> wait -> result` 链路。
+- 启用 `real-kling-backend` profile 后，服务会切换到 `KlingInternalInferenceBackendClient`，通过配置对接正式内部推理 API。
+
+真实 backend 配置：
+
+```yaml
+kling:
+  inference:
+    backend:
+      base-url: ${KLING_INFERENCE_BACKEND_BASE_URL:http://localhost:8099}
+      submit-path: ${KLING_INFERENCE_BACKEND_SUBMIT_PATH:/internal/inference/tasks}
+      cancel-path-template: ${KLING_INFERENCE_BACKEND_CANCEL_PATH_TEMPLATE:/internal/inference/tasks/{backendTaskId}/cancel}
+```
+
+底层推理完成、失败或进度更新后，可以通过内部事件入口回写编排层：
+
+```http
+POST /internal/v1/backend-events
+Content-Type: application/json
+```
+
 ## 后续生产实现建议
 
-- `InferenceJobRepository` 使用 PostgreSQL/MyBatis-Plus 或团队统一任务存储实现。
-- `InferenceEventPublisher` 对接 Kafka、RocketMQ、Pulsar 或内部事件总线。
-- `InferenceBackendClient` 对接真正的可灵内部推理 API，不复用开放平台的商业计费、外部鉴权限流链路。
+- 如果团队已有统一事件总线，可以把当前 `PersistentInferenceEventPublisher` 的本地广播扩展为 Kafka、RocketMQ、Pulsar 或内部事件总线。
+- `KlingInternalInferenceBackendClient` 需要根据团队正式内部推理 API 的请求/响应字段做一次精确适配。
 - 开放平台、创作工具和模型网关都只调用本编排层；各自保留自己的产品鉴权、计费、配额和审计逻辑。

@@ -1,5 +1,8 @@
 package com.example.kling.inference.client;
 
+import com.example.kling.inference.client.exception.KlingInferenceException;
+import com.example.kling.inference.client.exception.KlingInferenceJobException;
+import com.example.kling.inference.contract.enums.InferenceJobStatus;
 import com.example.kling.inference.contract.model.CancelJobRequest;
 import com.example.kling.inference.contract.model.VideoGenerationEvent;
 import com.example.kling.inference.contract.model.VideoGenerationJob;
@@ -85,7 +88,7 @@ public class WebClientKlingInferenceClient implements KlingInferenceClient {
     public CompletableFuture<VideoGenerationResult> generateAsync(VideoGenerationRequest request) {
         return submit(request)
                 .flatMap(job -> waitUntilTerminal(job.jobId()))
-                .map(VideoGenerationJob::result)
+                .flatMap(this::requireSuccessfulResult)
                 .toFuture();
     }
 
@@ -97,5 +100,15 @@ public class WebClientKlingInferenceClient implements KlingInferenceClient {
                     }
                     return Mono.delay(options.pollInterval()).then(waitUntilTerminal(jobId));
                 });
+    }
+
+    private Mono<VideoGenerationResult> requireSuccessfulResult(VideoGenerationJob job) {
+        if (!job.status().isTerminal()) {
+            return Mono.error(new KlingInferenceException("Kling inference job wait ended before terminal status: " + job.jobId()));
+        }
+        if (job.status() == InferenceJobStatus.SUCCEEDED && job.result() != null) {
+            return Mono.just(job.result());
+        }
+        return Mono.error(new KlingInferenceJobException(job));
     }
 }

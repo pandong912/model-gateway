@@ -1,12 +1,31 @@
 spring:
   application:
     name: kling-inference-service
+  datasource:
+    url: ${KLING_INFERENCE_DATASOURCE_URL:jdbc:postgresql://localhost:5432/kling_inference}
+    username: ${KLING_INFERENCE_DATASOURCE_USERNAME:}
+    password: ${KLING_INFERENCE_DATASOURCE_PASSWORD:}
+    driver-class-name: org.postgresql.Driver
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
 
 server:
   port: 8091
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
 
 management:
   endpoints:
     web:
       exposure:
         include: health,info,prometheus
+
+kling:
+  inference:
+    backend:
+      base-url: ${KLING_INFERENCE_BACKEND_BASE_URL:http://localhost:8099}
+      submit-path: ${KLING_INFERENCE_BACKEND_SUBMIT_PATH:/internal/inference/tasks}
+      cancel-path-template: ${KLING_INFERENCE_BACKEND_CANCEL_PATH_TEMPLATE:/internal/inference/tasks/{backendTaskId}/cancel}
