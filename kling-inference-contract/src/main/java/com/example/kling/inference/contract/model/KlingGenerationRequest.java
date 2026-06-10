@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Map;
 
-public record VideoGenerationRequest(
+public record KlingGenerationRequest(
         @NotBlank String requestId,
         String idempotencyKey,
         @Valid InferenceCaller caller,

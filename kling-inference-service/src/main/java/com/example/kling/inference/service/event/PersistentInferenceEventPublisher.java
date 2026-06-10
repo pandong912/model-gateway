@@ -1,6 +1,6 @@
 package com.example.kling.inference.service.event;
 
-import com.example.kling.inference.contract.model.VideoGenerationEvent;
+import com.example.kling.inference.contract.model.KlingGenerationEvent;
 import com.example.kling.inference.core.InferenceEventPublisher;
 import com.example.kling.inference.service.persistence.KlingInferenceEventRepository;
 import java.util.concurrent.ConcurrentHashMap;
@@ -16,20 +16,20 @@ import reactor.core.publisher.Sinks;
 public class PersistentInferenceEventPublisher implements InferenceEventPublisher {
 
     private final KlingInferenceEventRepository eventRepository;
-    private final ConcurrentMap<String, Sinks.Many<VideoGenerationEvent>> sinks = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, Sinks.Many<KlingGenerationEvent>> sinks = new ConcurrentHashMap<>();
 
     @Override
-    public Mono<Void> publish(VideoGenerationEvent event) {
+    public Mono<Void> publish(KlingGenerationEvent event) {
         return eventRepository.save(event)
                 .then(Mono.fromRunnable(() -> sink(event.jobId()).tryEmitNext(event)));
     }
 
     @Override
-    public Flux<VideoGenerationEvent> watch(String jobId) {
+    public Flux<KlingGenerationEvent> watch(String jobId) {
         return sink(jobId).asFlux();
     }
 
-    private Sinks.Many<VideoGenerationEvent> sink(String jobId) {
+    private Sinks.Many<KlingGenerationEvent> sink(String jobId) {
         return sinks.computeIfAbsent(jobId, ignored -> Sinks.many().multicast().directBestEffort());
     }
 }

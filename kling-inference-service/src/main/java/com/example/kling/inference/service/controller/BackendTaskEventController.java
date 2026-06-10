@@ -1,7 +1,7 @@
 package com.example.kling.inference.service.controller;
 
 import com.example.kling.inference.contract.model.BackendTaskEvent;
-import com.example.kling.inference.contract.model.VideoGenerationJob;
+import com.example.kling.inference.contract.model.KlingGenerationJob;
 import com.example.kling.inference.service.event.BackendTaskEventHandler;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +19,7 @@ public class BackendTaskEventController {
     private final BackendTaskEventHandler eventHandler;
 
     @PostMapping
-    public Mono<VideoGenerationJob> accept(@Valid @RequestBody BackendTaskEvent event) {
+    public Mono<KlingGenerationJob> accept(@Valid @RequestBody BackendTaskEvent event) {
         return eventHandler.handle(event);
     }
 }

@@ -8,7 +8,7 @@ public record BackendTaskEvent(
         String backendTaskId,
         InferenceJobStatus status,
         Integer progress,
-        VideoGenerationResult result,
+        KlingGenerationResult result,
         InferenceError error,
         Instant occurredAt,
         Map<String, Object> metadata

@@ -1,22 +1,22 @@
 package com.example.kling.inference.core;
 
 import com.example.kling.inference.contract.model.CancelJobRequest;
-import com.example.kling.inference.contract.model.VideoGenerationEvent;
-import com.example.kling.inference.contract.model.VideoGenerationJob;
-import com.example.kling.inference.contract.model.VideoGenerationRequest;
+import com.example.kling.inference.contract.model.KlingGenerationEvent;
+import com.example.kling.inference.contract.model.KlingGenerationJob;
+import com.example.kling.inference.contract.model.KlingGenerationRequest;
 import java.time.Duration;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 public interface InferenceOrchestrationService {
 
-    Mono<VideoGenerationJob> submit(VideoGenerationRequest request);
+    Mono<KlingGenerationJob> submit(KlingGenerationRequest request);
 
-    Mono<VideoGenerationJob> getJob(String jobId);
+    Mono<KlingGenerationJob> getJob(String jobId);
 
-    Mono<VideoGenerationJob> waitJob(String jobId, Duration timeout);
+    Mono<KlingGenerationJob> waitJob(String jobId, Duration timeout);
 
-    Flux<VideoGenerationEvent> watchJob(String jobId);
+    Flux<KlingGenerationEvent> watchJob(String jobId);
 
-    Mono<VideoGenerationJob> cancelJob(String jobId, CancelJobRequest request);
+    Mono<KlingGenerationJob> cancelJob(String jobId, CancelJobRequest request);
 }

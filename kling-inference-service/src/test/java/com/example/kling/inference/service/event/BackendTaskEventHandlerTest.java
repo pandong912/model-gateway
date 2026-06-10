@@ -8,10 +8,10 @@ import com.example.kling.inference.contract.enums.InferenceEventType;
 import com.example.kling.inference.contract.enums.InferenceJobStatus;
 import com.example.kling.inference.contract.model.BackendTaskEvent;
 import com.example.kling.inference.contract.model.OutputAsset;
-import com.example.kling.inference.contract.model.VideoGenerationEvent;
-import com.example.kling.inference.contract.model.VideoGenerationJob;
-import com.example.kling.inference.contract.model.VideoGenerationRequest;
-import com.example.kling.inference.contract.model.VideoGenerationResult;
+import com.example.kling.inference.contract.model.KlingGenerationEvent;
+import com.example.kling.inference.contract.model.KlingGenerationJob;
+import com.example.kling.inference.contract.model.KlingGenerationRequest;
+import com.example.kling.inference.contract.model.KlingGenerationResult;
 import com.example.kling.inference.core.InferenceEventPublisher;
 import com.example.kling.inference.core.InferenceJobRepository;
 import java.time.Instant;
@@ -28,7 +28,7 @@ class BackendTaskEventHandlerTest {
     @Test
     void updatesJobAndPublishesCompletionEvent() {
         Instant now = Instant.now();
-        VideoGenerationJob queued = new VideoGenerationJob(
+        KlingGenerationJob queued = new KlingGenerationJob(
                 "kg_001",
                 "req_001",
                 "idem_001",
@@ -47,7 +47,7 @@ class BackendTaskEventHandlerTest {
                 null,
                 Map.of()
         );
-        VideoGenerationResult result = new VideoGenerationResult(
+        KlingGenerationResult result = new KlingGenerationResult(
                 List.of(new OutputAsset("asset_001", AssetType.VIDEO, "https://example/video.mp4", "video/mp4", null, null, 5, Map.of())),
                 "https://example/cover.jpg",
                 "kling-video",
@@ -59,7 +59,7 @@ class BackendTaskEventHandlerTest {
         CapturingEventPublisher eventPublisher = new CapturingEventPublisher();
         BackendTaskEventHandler handler = new BackendTaskEventHandler(jobRepository, eventPublisher);
 
-        VideoGenerationJob updated = handler.handle(new BackendTaskEvent(
+        KlingGenerationJob updated = handler.handle(new BackendTaskEvent(
                 "backend_001",
                 InferenceJobStatus.SUCCEEDED,
                 100,
@@ -77,51 +77,51 @@ class BackendTaskEventHandlerTest {
     }
 
     private static class InMemoryJobRepository implements InferenceJobRepository {
-        private final AtomicReference<VideoGenerationJob> job;
+        private final AtomicReference<KlingGenerationJob> job;
 
-        private InMemoryJobRepository(VideoGenerationJob job) {
+        private InMemoryJobRepository(KlingGenerationJob job) {
             this.job = new AtomicReference<>(job);
         }
 
         @Override
-        public Mono<VideoGenerationJob> save(VideoGenerationJob job, VideoGenerationRequest request) {
+        public Mono<KlingGenerationJob> save(KlingGenerationJob job, KlingGenerationRequest request) {
             this.job.set(job);
             return Mono.just(job);
         }
 
         @Override
-        public Mono<VideoGenerationJob> update(VideoGenerationJob job) {
+        public Mono<KlingGenerationJob> update(KlingGenerationJob job) {
             this.job.set(job);
             return Mono.just(job);
         }
 
         @Override
-        public Mono<VideoGenerationJob> findById(String jobId) {
+        public Mono<KlingGenerationJob> findById(String jobId) {
             return Mono.just(job.get()).filter(value -> value.jobId().equals(jobId));
         }
 
         @Override
-        public Mono<VideoGenerationJob> findByIdempotencyKey(String callerId, String idempotencyKey) {
+        public Mono<KlingGenerationJob> findByIdempotencyKey(String callerId, String idempotencyKey) {
             return Mono.just(job.get()).filter(value -> callerId.equals(value.callerId()) && idempotencyKey.equals(value.idempotencyKey()));
         }
 
         @Override
-        public Mono<VideoGenerationJob> findByBackendTaskId(String backendTaskId) {
+        public Mono<KlingGenerationJob> findByBackendTaskId(String backendTaskId) {
             return Mono.just(job.get()).filter(value -> backendTaskId.equals(value.backendTaskId()));
         }
     }
 
     private static class CapturingEventPublisher implements InferenceEventPublisher {
-        private final List<VideoGenerationEvent> events = new ArrayList<>();
+        private final List<KlingGenerationEvent> events = new ArrayList<>();
 
         @Override
-        public Mono<Void> publish(VideoGenerationEvent event) {
+        public Mono<Void> publish(KlingGenerationEvent event) {
             events.add(event);
             return Mono.empty();
         }
 
         @Override
-        public Flux<VideoGenerationEvent> watch(String jobId) {
+        public Flux<KlingGenerationEvent> watch(String jobId) {
             return Flux.fromIterable(events).filter(event -> event.jobId().equals(jobId));
         }
     }

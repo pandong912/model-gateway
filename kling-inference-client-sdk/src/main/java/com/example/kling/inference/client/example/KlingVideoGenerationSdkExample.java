@@ -3,16 +3,16 @@ package com.example.kling.inference.client.example;
 import com.example.kling.inference.client.KlingInferenceClient;
 import com.example.kling.inference.client.KlingInferenceClientOptions;
 import com.example.kling.inference.client.WebClientKlingInferenceClient;
-import com.example.kling.inference.client.model.VideoGenerationRequestBuilder;
+import com.example.kling.inference.client.model.KlingGenerationRequestBuilder;
 import com.example.kling.inference.contract.model.InferenceCaller;
-import com.example.kling.inference.contract.model.VideoGenerationJob;
-import com.example.kling.inference.contract.model.VideoGenerationRequest;
-import com.example.kling.inference.contract.model.VideoGenerationResult;
+import com.example.kling.inference.contract.model.KlingGenerationJob;
+import com.example.kling.inference.contract.model.KlingGenerationRequest;
+import com.example.kling.inference.contract.model.KlingGenerationResult;
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
-public class KlingInferenceSdkExample {
+public class KlingVideoGenerationSdkExample {
 
     public static void main(String[] args) {
         KlingInferenceClient client = new WebClientKlingInferenceClient(
@@ -24,7 +24,7 @@ public class KlingInferenceSdkExample {
                 )
         );
 
-        VideoGenerationRequest request = VideoGenerationRequestBuilder
+        KlingGenerationRequest request = KlingGenerationRequestBuilder
                 .textToVideo("A cinematic shot of a futuristic city at sunrise")
                 .idempotencyKey("demo-futuristic-city-001")
                 .caller(new InferenceCaller(
@@ -43,10 +43,10 @@ public class KlingInferenceSdkExample {
 
         String jobId = client.submit(request).block().jobId();
         client.watchJob(jobId).subscribe(event -> System.out.println("event=" + event));
-        VideoGenerationJob snapshot = client.waitJob(jobId, Duration.ofSeconds(30)).block();
+        KlingGenerationJob snapshot = client.waitJob(jobId, Duration.ofSeconds(30)).block();
         System.out.println("wait snapshot=" + snapshot);
 
-        CompletableFuture<VideoGenerationResult> future = client.generateAsync(request);
+        CompletableFuture<KlingGenerationResult> future = client.generateAsync(request);
         System.out.println("future result=" + future.join());
     }
 }

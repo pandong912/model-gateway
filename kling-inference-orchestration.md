@@ -73,7 +73,7 @@ KlingInferenceClient client = new WebClientKlingInferenceClient(
         KlingInferenceClientOptions.of("http://localhost:8091")
 );
 
-VideoGenerationRequest request = new VideoGenerationRequest(
+KlingGenerationRequest request = new KlingGenerationRequest(
         "req-001",
         "idem-001",
         new InferenceCaller("model-gateway", "INTERNAL_SERVICE", "tenant-a", "project-a", "user-a", Map.of()),
@@ -94,7 +94,7 @@ VideoGenerationRequest request = new VideoGenerationRequest(
         Map.of()
 );
 
-CompletableFuture<VideoGenerationResult> future = client.generateAsync(request);
+CompletableFuture<KlingGenerationResult> future = client.generateAsync(request);
 ```
 
 ## 当前生产闭环实现

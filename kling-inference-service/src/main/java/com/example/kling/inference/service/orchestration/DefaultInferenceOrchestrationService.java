@@ -5,9 +5,9 @@ import com.example.kling.inference.contract.enums.InferenceJobStatus;
 import com.example.kling.inference.contract.model.CancelJobRequest;
 import com.example.kling.inference.contract.model.InferenceCaller;
 import com.example.kling.inference.contract.model.InferenceError;
-import com.example.kling.inference.contract.model.VideoGenerationEvent;
-import com.example.kling.inference.contract.model.VideoGenerationJob;
-import com.example.kling.inference.contract.model.VideoGenerationRequest;
+import com.example.kling.inference.contract.model.KlingGenerationEvent;
+import com.example.kling.inference.contract.model.KlingGenerationJob;
+import com.example.kling.inference.contract.model.KlingGenerationRequest;
 import com.example.kling.inference.core.InferenceBackendClient;
 import com.example.kling.inference.core.InferenceEventPublisher;
 import com.example.kling.inference.core.InferenceJobRepository;
@@ -35,7 +35,7 @@ public class DefaultInferenceOrchestrationService implements InferenceOrchestrat
     private final InferenceBackendClient backendClient;
 
     @Override
-    public Mono<VideoGenerationJob> submit(VideoGenerationRequest request) {
+    public Mono<KlingGenerationJob> submit(KlingGenerationRequest request) {
         String callerId = callerId(request);
         if (!isBlank(request.idempotencyKey())) {
             return jobRepository.findByIdempotencyKey(callerId, request.idempotencyKey())
@@ -45,7 +45,7 @@ public class DefaultInferenceOrchestrationService implements InferenceOrchestrat
     }
 
     @Override
-    public Mono<VideoGenerationJob> getJob(String jobId) {
+    public Mono<KlingGenerationJob> getJob(String jobId) {
         return jobRepository.findById(jobId)
                 .switchIfEmpty(Mono.error(new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
@@ -53,7 +53,7 @@ public class DefaultInferenceOrchestrationService implements InferenceOrchestrat
     }
 
     @Override
-    public Mono<VideoGenerationJob> waitJob(String jobId, Duration timeout) {
+    public Mono<KlingGenerationJob> waitJob(String jobId, Duration timeout) {
         return getJob(jobId).flatMap(job -> {
             if (job.status().isTerminal()) {
                 return Mono.just(job);
@@ -67,7 +67,7 @@ public class DefaultInferenceOrchestrationService implements InferenceOrchestrat
     }
 
     @Override
-    public Flux<VideoGenerationEvent> watchJob(String jobId) {
+    public Flux<KlingGenerationEvent> watchJob(String jobId) {
         return getJob(jobId).flatMapMany(job -> Flux.concat(
                 Flux.just(event(job, InferenceEventType.STATUS_CHANGED)),
                 eventPublisher.watch(jobId)
@@ -75,7 +75,7 @@ public class DefaultInferenceOrchestrationService implements InferenceOrchestrat
     }
 
     @Override
-    public Mono<VideoGenerationJob> cancelJob(String jobId, CancelJobRequest request) {
+    public Mono<KlingGenerationJob> cancelJob(String jobId, CancelJobRequest request) {
         return getJob(jobId).flatMap(job -> {
             if (job.status().isTerminal()) {
                 return Mono.just(job);
@@ -86,9 +86,9 @@ public class DefaultInferenceOrchestrationService implements InferenceOrchestrat
         });
     }
 
-    private Mono<VideoGenerationJob> createAndSubmit(VideoGenerationRequest request, String callerId) {
+    private Mono<KlingGenerationJob> createAndSubmit(KlingGenerationRequest request, String callerId) {
         Instant now = Instant.now();
-        VideoGenerationJob created = new VideoGenerationJob(
+        KlingGenerationJob created = new KlingGenerationJob(
                 "kg_" + UUID.randomUUID().toString().replace("-", ""),
                 request.requestId(),
                 request.idempotencyKey(),
@@ -112,14 +112,14 @@ public class DefaultInferenceOrchestrationService implements InferenceOrchestrat
                 .flatMap(job -> publish(job, InferenceEventType.JOB_CREATED).thenReturn(job))
                 .flatMap(job -> backendClient.submit(request)
                         .flatMap(submission -> {
-                            VideoGenerationJob submitted = withBackendSubmission(job, submission);
+                            KlingGenerationJob submitted = withBackendSubmission(job, submission);
                             return jobRepository.update(submitted)
                                     .flatMap(updated -> publish(updated, InferenceEventType.STATUS_CHANGED).thenReturn(updated));
                         })
                         .onErrorResume(ex -> failSubmit(job, ex)));
     }
 
-    private Mono<VideoGenerationJob> failSubmit(VideoGenerationJob job, Throwable ex) {
+    private Mono<KlingGenerationJob> failSubmit(KlingGenerationJob job, Throwable ex) {
         InferenceError error = new InferenceError(
                 "BACKEND_SUBMIT_FAILED",
                 ex.getMessage() == null ? "Failed to submit backend inference task" : ex.getMessage(),
@@ -130,12 +130,12 @@ public class DefaultInferenceOrchestrationService implements InferenceOrchestrat
                 .flatMap(failed -> publish(failed, InferenceEventType.FAILED).thenReturn(failed));
     }
 
-    private VideoGenerationJob withBackendSubmission(
-            VideoGenerationJob job,
+    private KlingGenerationJob withBackendSubmission(
+            KlingGenerationJob job,
             InferenceBackendClient.BackendSubmission submission
     ) {
         Instant now = Instant.now();
-        return new VideoGenerationJob(
+        return new KlingGenerationJob(
                 job.jobId(),
                 job.requestId(),
                 job.idempotencyKey(),
@@ -156,14 +156,14 @@ public class DefaultInferenceOrchestrationService implements InferenceOrchestrat
         );
     }
 
-    private Mono<VideoGenerationJob> updateStatus(
-            VideoGenerationJob job,
+    private Mono<KlingGenerationJob> updateStatus(
+            KlingGenerationJob job,
             InferenceJobStatus status,
             Integer progress,
-            com.example.kling.inference.contract.model.VideoGenerationResult result,
+            com.example.kling.inference.contract.model.KlingGenerationResult result,
             InferenceError error
     ) {
-        VideoGenerationJob updated = new VideoGenerationJob(
+        KlingGenerationJob updated = new KlingGenerationJob(
                 job.jobId(),
                 job.requestId(),
                 job.idempotencyKey(),
@@ -185,12 +185,12 @@ public class DefaultInferenceOrchestrationService implements InferenceOrchestrat
         return jobRepository.update(updated);
     }
 
-    private Mono<Void> publish(VideoGenerationJob job, InferenceEventType type) {
+    private Mono<Void> publish(KlingGenerationJob job, InferenceEventType type) {
         return eventPublisher.publish(event(job, type));
     }
 
-    private VideoGenerationEvent event(VideoGenerationJob job, InferenceEventType type) {
-        return new VideoGenerationEvent(
+    private KlingGenerationEvent event(KlingGenerationJob job, InferenceEventType type) {
+        return new KlingGenerationEvent(
                 "evt_" + UUID.randomUUID().toString().replace("-", ""),
                 job.jobId(),
                 type,
@@ -203,7 +203,7 @@ public class DefaultInferenceOrchestrationService implements InferenceOrchestrat
         );
     }
 
-    private String callerId(VideoGenerationRequest request) {
+    private String callerId(KlingGenerationRequest request) {
         InferenceCaller caller = request.caller();
         if (caller == null || isBlank(caller.callerId())) {
             return "anonymous";
@@ -211,7 +211,7 @@ public class DefaultInferenceOrchestrationService implements InferenceOrchestrat
         return caller.callerId();
     }
 
-    private Map<String, Object> metadata(VideoGenerationRequest request) {
+    private Map<String, Object> metadata(KlingGenerationRequest request) {
         String scenario = request.scenario() == null ? "" : request.scenario();
         String model = request.model() == null ? "" : request.model();
         return Map.of(

@@ -5,7 +5,7 @@ import com.example.kling.inference.contract.enums.InferenceJobStatus;
 import java.time.Instant;
 import java.util.Map;
 
-public record VideoGenerationJob(
+public record KlingGenerationJob(
         String jobId,
         String requestId,
         String idempotencyKey,
@@ -20,7 +20,7 @@ public record VideoGenerationJob(
         Instant updatedAt,
         Instant expiresAt,
         Integer estimatedWaitSeconds,
-        VideoGenerationResult result,
+        KlingGenerationResult result,
         InferenceError error,
         Map<String, Object> metadata
 ) {

@@ -4,15 +4,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.example.kling.inference.contract.enums.GenerationType;
 import com.example.kling.inference.contract.model.InferenceCaller;
-import com.example.kling.inference.contract.model.VideoGenerationRequest;
+import com.example.kling.inference.contract.model.KlingGenerationRequest;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
-class VideoGenerationRequestBuilderTest {
+class KlingGenerationRequestBuilderTest {
 
     @Test
     void buildsTextToVideoRequestWithDefaultsAndCaller() {
-        VideoGenerationRequest request = VideoGenerationRequestBuilder
+        KlingGenerationRequest request = KlingGenerationRequestBuilder
                 .textToVideo("generate a cinematic city video")
                 .idempotencyKey("idem-001")
                 .caller(new InferenceCaller("model-gateway", "INTERNAL_SERVICE", "tenant-a", "project-a", "user-a", Map.of()))
@@ -27,5 +27,19 @@ class VideoGenerationRequestBuilderTest {
         assertThat(request.model()).isEqualTo("kling-video");
         assertThat(request.durationSeconds()).isEqualTo(5);
         assertThat(request.caller().callerId()).isEqualTo("model-gateway");
+    }
+
+    @Test
+    void buildsImageGenerationRequest() {
+        KlingGenerationRequest request = KlingGenerationRequestBuilder
+                .imageGeneration("generate a product hero image")
+                .scenario("ecommerce-hero-image")
+                .resolution("1024x1024")
+                .build();
+
+        assertThat(request.generationType()).isEqualTo(GenerationType.IMAGE_GENERATION);
+        assertThat(request.model()).isEqualTo("kling-image");
+        assertThat(request.prompt()).isEqualTo("generate a product hero image");
+        assertThat(request.resolution()).isEqualTo("1024x1024");
     }
 }

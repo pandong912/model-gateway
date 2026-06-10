@@ -1,6 +1,6 @@
 package com.example.kling.inference.service.backend;
 
-import com.example.kling.inference.contract.model.VideoGenerationRequest;
+import com.example.kling.inference.contract.model.KlingGenerationRequest;
 import com.example.kling.inference.core.InferenceBackendClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
@@ -28,7 +28,7 @@ public class KlingInternalInferenceBackendClient implements InferenceBackendClie
     }
 
     @Override
-    public Mono<BackendSubmission> submit(VideoGenerationRequest request) {
+    public Mono<BackendSubmission> submit(KlingGenerationRequest request) {
         return webClient.post()
                 .uri(submitPath)
                 .bodyValue(request)

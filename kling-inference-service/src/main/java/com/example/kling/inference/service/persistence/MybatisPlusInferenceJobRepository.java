@@ -5,9 +5,9 @@ import com.example.kling.inference.contract.enums.GenerationType;
 import com.example.kling.inference.contract.enums.InferenceJobStatus;
 import com.example.kling.inference.contract.model.InferenceCaller;
 import com.example.kling.inference.contract.model.InferenceError;
-import com.example.kling.inference.contract.model.VideoGenerationJob;
-import com.example.kling.inference.contract.model.VideoGenerationRequest;
-import com.example.kling.inference.contract.model.VideoGenerationResult;
+import com.example.kling.inference.contract.model.KlingGenerationJob;
+import com.example.kling.inference.contract.model.KlingGenerationRequest;
+import com.example.kling.inference.contract.model.KlingGenerationResult;
 import com.example.kling.inference.core.InferenceJobRepository;
 import com.example.kling.inference.service.persistence.entity.KlingInferenceJobEntity;
 import com.example.kling.inference.service.persistence.mapper.KlingInferenceJobMapper;
@@ -31,7 +31,7 @@ public class MybatisPlusInferenceJobRepository implements InferenceJobRepository
     private final ObjectMapper objectMapper;
 
     @Override
-    public Mono<VideoGenerationJob> save(VideoGenerationJob job, VideoGenerationRequest request) {
+    public Mono<KlingGenerationJob> save(KlingGenerationJob job, KlingGenerationRequest request) {
         return Mono.fromCallable(() -> {
             KlingInferenceJobEntity entity = toEntity(job, request);
             if (mapper.selectById(job.jobId()) == null) {
@@ -44,7 +44,7 @@ public class MybatisPlusInferenceJobRepository implements InferenceJobRepository
     }
 
     @Override
-    public Mono<VideoGenerationJob> update(VideoGenerationJob job) {
+    public Mono<KlingGenerationJob> update(KlingGenerationJob job) {
         return Mono.fromCallable(() -> {
             KlingInferenceJobEntity current = mapper.selectById(job.jobId());
             if (current == null) {
@@ -57,14 +57,14 @@ public class MybatisPlusInferenceJobRepository implements InferenceJobRepository
     }
 
     @Override
-    public Mono<VideoGenerationJob> findById(String jobId) {
+    public Mono<KlingGenerationJob> findById(String jobId) {
         return Mono.fromCallable(() -> mapper.selectById(jobId))
                 .subscribeOn(Schedulers.boundedElastic())
                 .flatMap(entity -> entity == null ? Mono.empty() : Mono.just(toDomain(entity)));
     }
 
     @Override
-    public Mono<VideoGenerationJob> findByIdempotencyKey(String callerId, String idempotencyKey) {
+    public Mono<KlingGenerationJob> findByIdempotencyKey(String callerId, String idempotencyKey) {
         if (isBlank(callerId) || isBlank(idempotencyKey)) {
             return Mono.empty();
         }
@@ -77,7 +77,7 @@ public class MybatisPlusInferenceJobRepository implements InferenceJobRepository
     }
 
     @Override
-    public Mono<VideoGenerationJob> findByBackendTaskId(String backendTaskId) {
+    public Mono<KlingGenerationJob> findByBackendTaskId(String backendTaskId) {
         if (isBlank(backendTaskId)) {
             return Mono.empty();
         }
@@ -88,7 +88,7 @@ public class MybatisPlusInferenceJobRepository implements InferenceJobRepository
                 .flatMap(entity -> entity == null ? Mono.empty() : Mono.just(toDomain(entity)));
     }
 
-    private KlingInferenceJobEntity toEntity(VideoGenerationJob job, VideoGenerationRequest request) {
+    private KlingInferenceJobEntity toEntity(KlingGenerationJob job, KlingGenerationRequest request) {
         KlingInferenceJobEntity entity = new KlingInferenceJobEntity();
         InferenceCaller caller = request.caller();
         entity.setJobId(job.jobId());
@@ -116,7 +116,7 @@ public class MybatisPlusInferenceJobRepository implements InferenceJobRepository
         return entity;
     }
 
-    private KlingInferenceJobEntity toEntity(VideoGenerationJob job, KlingInferenceJobEntity current) {
+    private KlingInferenceJobEntity toEntity(KlingGenerationJob job, KlingInferenceJobEntity current) {
         current.setRequestId(job.requestId());
         current.setIdempotencyKey(job.idempotencyKey());
         current.setCallerId(job.callerId());
@@ -136,8 +136,8 @@ public class MybatisPlusInferenceJobRepository implements InferenceJobRepository
         return current;
     }
 
-    private VideoGenerationJob toDomain(KlingInferenceJobEntity entity) {
-        return new VideoGenerationJob(
+    private KlingGenerationJob toDomain(KlingInferenceJobEntity entity) {
+        return new KlingGenerationJob(
                 entity.getJobId(),
                 entity.getRequestId(),
                 entity.getIdempotencyKey(),
@@ -152,7 +152,7 @@ public class MybatisPlusInferenceJobRepository implements InferenceJobRepository
                 entity.getUpdatedAt(),
                 entity.getExpiresAt(),
                 entity.getEstimatedWaitSeconds(),
-                readNullableJson(entity.getResultPayload(), VideoGenerationResult.class),
+                readNullableJson(entity.getResultPayload(), KlingGenerationResult.class),
                 readNullableJson(entity.getErrorPayload(), InferenceError.class),
                 readRequiredJson(entity.getMetadata(), METADATA)
         );

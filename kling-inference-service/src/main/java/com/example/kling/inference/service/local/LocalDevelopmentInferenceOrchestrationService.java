@@ -3,9 +3,9 @@ package com.example.kling.inference.service.local;
 import com.example.kling.inference.contract.enums.InferenceEventType;
 import com.example.kling.inference.contract.enums.InferenceJobStatus;
 import com.example.kling.inference.contract.model.CancelJobRequest;
-import com.example.kling.inference.contract.model.VideoGenerationEvent;
-import com.example.kling.inference.contract.model.VideoGenerationJob;
-import com.example.kling.inference.contract.model.VideoGenerationRequest;
+import com.example.kling.inference.contract.model.KlingGenerationEvent;
+import com.example.kling.inference.contract.model.KlingGenerationJob;
+import com.example.kling.inference.contract.model.KlingGenerationRequest;
 import com.example.kling.inference.core.InferenceOrchestrationService;
 import java.time.Duration;
 import java.time.Instant;
@@ -26,14 +26,14 @@ import reactor.core.publisher.Sinks;
 @Profile("local-dev")
 public class LocalDevelopmentInferenceOrchestrationService implements InferenceOrchestrationService {
 
-    private final ConcurrentMap<String, VideoGenerationJob> jobs = new ConcurrentHashMap<>();
-    private final ConcurrentMap<String, Sinks.Many<VideoGenerationEvent>> eventSinks = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, KlingGenerationJob> jobs = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, Sinks.Many<KlingGenerationEvent>> eventSinks = new ConcurrentHashMap<>();
 
     @Override
-    public Mono<VideoGenerationJob> submit(VideoGenerationRequest request) {
+    public Mono<KlingGenerationJob> submit(KlingGenerationRequest request) {
         String jobId = "kg_" + UUID.randomUUID().toString().replace("-", "");
         Instant now = Instant.now();
-        VideoGenerationJob job = new VideoGenerationJob(
+        KlingGenerationJob job = new KlingGenerationJob(
                 jobId,
                 request.requestId(),
                 request.idempotencyKey(),
@@ -61,8 +61,8 @@ public class LocalDevelopmentInferenceOrchestrationService implements InferenceO
     }
 
     @Override
-    public Mono<VideoGenerationJob> getJob(String jobId) {
-        VideoGenerationJob job = jobs.get(jobId);
+    public Mono<KlingGenerationJob> getJob(String jobId) {
+        KlingGenerationJob job = jobs.get(jobId);
         if (job == null) {
             return Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND, "Video generation job not found: " + jobId));
         }
@@ -70,7 +70,7 @@ public class LocalDevelopmentInferenceOrchestrationService implements InferenceO
     }
 
     @Override
-    public Mono<VideoGenerationJob> waitJob(String jobId, Duration timeout) {
+    public Mono<KlingGenerationJob> waitJob(String jobId, Duration timeout) {
         return getJob(jobId).flatMap(job -> {
             if (job.status().isTerminal()) {
                 return Mono.just(job);
@@ -84,8 +84,8 @@ public class LocalDevelopmentInferenceOrchestrationService implements InferenceO
     }
 
     @Override
-    public Flux<VideoGenerationEvent> watchJob(String jobId) {
-        VideoGenerationJob current = jobs.get(jobId);
+    public Flux<KlingGenerationEvent> watchJob(String jobId) {
+        KlingGenerationJob current = jobs.get(jobId);
         if (current == null) {
             return Flux.error(new ResponseStatusException(HttpStatus.NOT_FOUND, "Video generation job not found: " + jobId));
         }
@@ -96,13 +96,13 @@ public class LocalDevelopmentInferenceOrchestrationService implements InferenceO
     }
 
     @Override
-    public Mono<VideoGenerationJob> cancelJob(String jobId, CancelJobRequest request) {
+    public Mono<KlingGenerationJob> cancelJob(String jobId, CancelJobRequest request) {
         return getJob(jobId).map(current -> {
             if (current.status().isTerminal()) {
                 return current;
             }
             Instant now = Instant.now();
-            VideoGenerationJob cancelled = new VideoGenerationJob(
+            KlingGenerationJob cancelled = new KlingGenerationJob(
                     current.jobId(),
                     current.requestId(),
                     current.idempotencyKey(),
@@ -127,16 +127,16 @@ public class LocalDevelopmentInferenceOrchestrationService implements InferenceO
         });
     }
 
-    private Sinks.Many<VideoGenerationEvent> sink(String jobId) {
+    private Sinks.Many<KlingGenerationEvent> sink(String jobId) {
         return eventSinks.computeIfAbsent(jobId, ignored -> Sinks.many().multicast().directBestEffort());
     }
 
-    private void publish(VideoGenerationEvent event) {
+    private void publish(KlingGenerationEvent event) {
         sink(event.jobId()).tryEmitNext(event);
     }
 
-    private VideoGenerationEvent event(VideoGenerationJob job, InferenceEventType type) {
-        return new VideoGenerationEvent(
+    private KlingGenerationEvent event(KlingGenerationJob job, InferenceEventType type) {
+        return new KlingGenerationEvent(
                 "evt_" + UUID.randomUUID().toString().replace("-", ""),
                 job.jobId(),
                 type,

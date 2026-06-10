@@ -1,18 +1,18 @@
 package com.example.kling.inference.core;
 
-import com.example.kling.inference.contract.model.VideoGenerationJob;
-import com.example.kling.inference.contract.model.VideoGenerationRequest;
+import com.example.kling.inference.contract.model.KlingGenerationJob;
+import com.example.kling.inference.contract.model.KlingGenerationRequest;
 import reactor.core.publisher.Mono;
 
 public interface InferenceJobRepository {
 
-    Mono<VideoGenerationJob> save(VideoGenerationJob job, VideoGenerationRequest request);
+    Mono<KlingGenerationJob> save(KlingGenerationJob job, KlingGenerationRequest request);
 
-    Mono<VideoGenerationJob> update(VideoGenerationJob job);
+    Mono<KlingGenerationJob> update(KlingGenerationJob job);
 
-    Mono<VideoGenerationJob> findById(String jobId);
+    Mono<KlingGenerationJob> findById(String jobId);
 
-    Mono<VideoGenerationJob> findByIdempotencyKey(String callerId, String idempotencyKey);
+    Mono<KlingGenerationJob> findByIdempotencyKey(String callerId, String idempotencyKey);
 
-    Mono<VideoGenerationJob> findByBackendTaskId(String backendTaskId);
+    Mono<KlingGenerationJob> findByBackendTaskId(String backendTaskId);
 }

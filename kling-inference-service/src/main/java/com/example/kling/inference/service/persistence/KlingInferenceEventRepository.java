@@ -1,8 +1,8 @@
 package com.example.kling.inference.service.persistence;
 
 import com.example.kling.inference.contract.model.InferenceError;
-import com.example.kling.inference.contract.model.VideoGenerationEvent;
-import com.example.kling.inference.contract.model.VideoGenerationResult;
+import com.example.kling.inference.contract.model.KlingGenerationEvent;
+import com.example.kling.inference.contract.model.KlingGenerationResult;
 import com.example.kling.inference.service.persistence.entity.KlingInferenceEventEntity;
 import com.example.kling.inference.service.persistence.mapper.KlingInferenceEventMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -20,13 +20,13 @@ public class KlingInferenceEventRepository {
     private final KlingInferenceEventMapper mapper;
     private final ObjectMapper objectMapper;
 
-    public Mono<Void> save(VideoGenerationEvent event) {
+    public Mono<Void> save(KlingGenerationEvent event) {
         return Mono.fromRunnable(() -> mapper.insert(toEntity(event)))
                 .subscribeOn(Schedulers.boundedElastic())
                 .then();
     }
 
-    private KlingInferenceEventEntity toEntity(VideoGenerationEvent event) {
+    private KlingInferenceEventEntity toEntity(KlingGenerationEvent event) {
         KlingInferenceEventEntity entity = new KlingInferenceEventEntity();
         entity.setEventId(event.eventId());
         entity.setJobId(event.jobId());

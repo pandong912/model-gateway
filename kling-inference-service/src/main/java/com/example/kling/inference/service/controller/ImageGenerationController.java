@@ -2,9 +2,9 @@ package com.example.kling.inference.service.controller;
 
 import com.example.kling.inference.contract.enums.GenerationType;
 import com.example.kling.inference.contract.model.CancelJobRequest;
-import com.example.kling.inference.contract.model.VideoGenerationEvent;
-import com.example.kling.inference.contract.model.VideoGenerationJob;
-import com.example.kling.inference.contract.model.VideoGenerationRequest;
+import com.example.kling.inference.contract.model.KlingGenerationEvent;
+import com.example.kling.inference.contract.model.KlingGenerationJob;
+import com.example.kling.inference.contract.model.KlingGenerationRequest;
 import com.example.kling.inference.core.InferenceOrchestrationService;
 import jakarta.validation.Valid;
 import java.time.Duration;
@@ -38,13 +38,13 @@ public class ImageGenerationController {
     }
 
     @PostMapping
-    public Mono<ResponseEntity<VideoGenerationJob>> submit(
-            @Valid @RequestBody VideoGenerationRequest request,
+    public Mono<ResponseEntity<KlingGenerationJob>> submit(
+            @Valid @RequestBody KlingGenerationRequest request,
             @RequestParam(name = "wait", defaultValue = "false") boolean wait,
             @RequestParam(name = "timeoutSeconds", required = false) Long timeoutSeconds
     ) {
         validateImageGenerationRequest(request);
-        Mono<VideoGenerationJob> jobMono = orchestrationService.submit(request)
+        Mono<KlingGenerationJob> jobMono = orchestrationService.submit(request)
                 .flatMap(job -> wait
                         ? orchestrationService.waitJob(job.jobId(), normalizeTimeout(timeoutSeconds))
                         : Mono.just(job));
@@ -55,12 +55,12 @@ public class ImageGenerationController {
     }
 
     @GetMapping("/{jobId}")
-    public Mono<VideoGenerationJob> getJob(@PathVariable String jobId) {
+    public Mono<KlingGenerationJob> getJob(@PathVariable String jobId) {
         return orchestrationService.getJob(jobId);
     }
 
     @GetMapping(path = {"/{jobId}:wait", "/{jobId}/wait"})
-    public Mono<VideoGenerationJob> waitJob(
+    public Mono<KlingGenerationJob> waitJob(
             @PathVariable String jobId,
             @RequestParam(name = "timeoutSeconds", required = false) Long timeoutSeconds
     ) {
@@ -68,19 +68,19 @@ public class ImageGenerationController {
     }
 
     @GetMapping(path = "/{jobId}/events", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<VideoGenerationEvent> watchJob(@PathVariable String jobId) {
+    public Flux<KlingGenerationEvent> watchJob(@PathVariable String jobId) {
         return orchestrationService.watchJob(jobId);
     }
 
     @PostMapping(path = {"/{jobId}:cancel", "/{jobId}/cancel"})
-    public Mono<VideoGenerationJob> cancelJob(
+    public Mono<KlingGenerationJob> cancelJob(
             @PathVariable String jobId,
             @RequestBody(required = false) CancelJobRequest request
     ) {
         return orchestrationService.cancelJob(jobId, request == null ? new CancelJobRequest(null, null, null) : request);
     }
 
-    private void validateImageGenerationRequest(VideoGenerationRequest request) {
+    private void validateImageGenerationRequest(KlingGenerationRequest request) {
         if (request.generationType() != GenerationType.IMAGE_GENERATION
                 && request.generationType() != GenerationType.IMAGE_EDITING) {
             throw new ResponseStatusException(
