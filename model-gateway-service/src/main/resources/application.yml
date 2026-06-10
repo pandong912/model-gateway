@@ -1,11 +1,16 @@
 spring:
   application:
     name: model-gateway-service
+  codec:
+    max-in-memory-size: ${MODEL_GATEWAY_CODEC_MAX_IN_MEMORY_SIZE:50MB}
   datasource:
     url: ${MODEL_GATEWAY_DATASOURCE_URL:jdbc:postgresql://localhost:5432/model_gateway}
-    username: ${MODEL_GATEWAY_DATASOURCE_USERNAME:model_gateway}
+    username: ${MODEL_GATEWAY_DATASOURCE_USERNAME:}
     password: ${MODEL_GATEWAY_DATASOURCE_PASSWORD:}
     driver-class-name: org.postgresql.Driver
+
+server:
+  port: 9050
 
 mybatis-plus:
   configuration:
@@ -51,3 +56,9 @@ model:
         base-url: ${GEMINI_BASE_URL:https://generativelanguage.googleapis.com/v1beta}
         api-key: ${GEMINI_API_KEY:}
         timeout: 60s
+      - id: vertex-gemini
+        type: vertex-gemini
+        project-id: ${VERTEX_GEMINI_PROJECT_ID:llm-66407-gemini}
+        location: ${VERTEX_GEMINI_LOCATION:global}
+        credentials-path: ${VERTEX_GEMINI_CREDENTIALS_PATH:/Users/pandong/secure/gemini-service-account.json}
+        timeout: 120s

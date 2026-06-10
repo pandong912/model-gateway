@@ -11,14 +11,12 @@ import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 public class SlidingWindowQuotaService implements QuotaService {
     private final ModelGatewayProperties.Quota quota;
     private final Map<String, WindowCounter> counters = new ConcurrentHashMap<>();
-
-    public SlidingWindowQuotaService(ModelGatewayProperties.Quota quota) {
-        this.quota = quota;
-    }
 
     @Override
     public void check(ChatCompletionRequest request, ModelRoute route, InvocationContext context) {

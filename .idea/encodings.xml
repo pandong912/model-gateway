@@ -5,6 +5,8 @@
     <file url="file://$PROJECT_DIR$/model-gateway-client-starter/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/model-gateway-core/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/model-gateway-db-migration/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/solution-ecommerce-api/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/solution-ecommerce-worker/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/model-gateway-examples/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/model-gateway-provider-gemini/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/model-gateway-provider-openai/src/main/java" charset="UTF-8" />

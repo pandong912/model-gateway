@@ -1,6 +1,7 @@
 package com.example.modelgateway.service.filter;
 
 import com.example.modelgateway.service.config.ModelGatewayProperties;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
@@ -10,12 +11,9 @@ import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
 @Component
+@RequiredArgsConstructor
 public class ApiKeyWebFilter implements WebFilter {
     private final ModelGatewayProperties properties;
-
-    public ApiKeyWebFilter(ModelGatewayProperties properties) {
-        this.properties = properties;
-    }
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {

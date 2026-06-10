@@ -29,17 +29,21 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 public class GeminiProviderClient implements ProviderClient {
-    private final GeminiProviderConfig config;
-    private final WebClient webClient;
-    private final ObjectMapper objectMapper;
+    protected final GeminiProviderConfig config;
+    protected final WebClient webClient;
+    protected final ObjectMapper objectMapper;
 
     public GeminiProviderClient(GeminiProviderConfig config, WebClient.Builder builder, ObjectMapper objectMapper) {
-        this.config = config;
-        this.objectMapper = objectMapper;
-        this.webClient = builder.clone()
+        this(config, builder.clone()
                 .baseUrl(config.baseUrl().toString())
                 .defaultHeader("x-goog-api-key", config.apiKey() == null ? "" : config.apiKey())
-                .build();
+                .build(), objectMapper);
+    }
+
+    protected GeminiProviderClient(GeminiProviderConfig config, WebClient webClient, ObjectMapper objectMapper) {
+        this.config = config;
+        this.webClient = webClient;
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -78,7 +82,7 @@ public class GeminiProviderClient implements ProviderClient {
                 .concatWith(Mono.just(ChatStreamEvent.done(responseId, TokenUsage.empty(), route.provider(), route.model(), route.id(), context.traceId())));
     }
 
-    private Map<String, Object> toGeminiRequest(ChatCompletionRequest request, ModelRoute route) {
+    protected Map<String, Object> toGeminiRequest(ChatCompletionRequest request, ModelRoute route) {
         Map<String, Object> body = new LinkedHashMap<>();
         List<Map<String, Object>> contents = new ArrayList<>();
         List<Map<String, Object>> systemParts = new ArrayList<>();
@@ -110,7 +114,7 @@ public class GeminiProviderClient implements ProviderClient {
         return body;
     }
 
-    private Map<String, Object> toGeminiContent(ChatMessage message) {
+    protected Map<String, Object> toGeminiContent(ChatMessage message) {
         Map<String, Object> content = new LinkedHashMap<>();
         content.put("role", message.role() == MessageRole.ASSISTANT ? "model" : "user");
         List<Map<String, Object>> parts = new ArrayList<>();
@@ -126,7 +130,7 @@ public class GeminiProviderClient implements ProviderClient {
         return content;
     }
 
-    private Map<String, Object> toGeminiMediaPart(MediaContent media) {
+    protected Map<String, Object> toGeminiMediaPart(MediaContent media) {
         String mimeType = resolveMimeType(media);
         if (media.base64() != null && !media.base64().isBlank()) {
             return Map.of("inlineData", Map.of(
@@ -145,7 +149,7 @@ public class GeminiProviderClient implements ProviderClient {
         return Map.of("text", "");
     }
 
-    private String resolveMimeType(MediaContent media) {
+    protected String resolveMimeType(MediaContent media) {
         if (media.mimeType() != null && !media.mimeType().isBlank()) {
             return media.mimeType();
         }
@@ -158,7 +162,7 @@ public class GeminiProviderClient implements ProviderClient {
         return "image/jpeg";
     }
 
-    private Map<String, Object> generationConfig(ChatCompletionRequest request, ModelRoute route) {
+    protected Map<String, Object> generationConfig(ChatCompletionRequest request, ModelRoute route) {
         Map<String, Object> configMap = new LinkedHashMap<>();
         Map<String, Object> parameters = request.safeParameters();
         copyIfPresent(parameters, configMap, "temperature", "temperature");
@@ -188,19 +192,19 @@ public class GeminiProviderClient implements ProviderClient {
         return configMap;
     }
 
-    private boolean isJsonMode(Map<String, Object> parameters) {
+    protected boolean isJsonMode(Map<String, Object> parameters) {
         Object responseFormat = parameters.get("response_format");
         return responseFormat instanceof Map<?, ?> map && "json_object".equals(map.get("type"));
     }
 
-    private void copyIfPresent(Map<String, Object> source, Map<String, Object> target, String sourceKey, String targetKey) {
+    protected void copyIfPresent(Map<String, Object> source, Map<String, Object> target, String sourceKey, String targetKey) {
         Object value = source.get(sourceKey);
         if (value != null) {
             target.put(targetKey, value);
         }
     }
 
-    private ChatCompletionResponse toGatewayResponse(JsonNode response, ModelRoute route, InvocationContext context, long latencyMs) {
+    protected ChatCompletionResponse toGatewayResponse(JsonNode response, ModelRoute route, InvocationContext context, long latencyMs) {
         JsonNode candidate = first(response.path("candidates"));
         JsonNode responseContent = candidate.path("content");
         String content = extractText(responseContent);
@@ -220,7 +224,7 @@ public class GeminiProviderClient implements ProviderClient {
                 Map.of("adapter", "gemini-native"));
     }
 
-    private Flux<ChatStreamEvent> parseStreamChunk(String chunk, String responseId, ModelRoute route, InvocationContext context) {
+    protected Flux<ChatStreamEvent> parseStreamChunk(String chunk, String responseId, ModelRoute route, InvocationContext context) {
         return Flux.fromArray(chunk.split("\\r?\\n"))
                 .map(String::trim)
                 .filter(line -> line.startsWith("data:"))
@@ -229,7 +233,7 @@ public class GeminiProviderClient implements ProviderClient {
                 .flatMap(data -> parseStreamData(data, responseId, route, context));
     }
 
-    private Flux<ChatStreamEvent> parseStreamData(String data, String responseId, ModelRoute route, InvocationContext context) {
+    protected Flux<ChatStreamEvent> parseStreamData(String data, String responseId, ModelRoute route, InvocationContext context) {
         try {
             JsonNode node = objectMapper.readTree(data);
             JsonNode content = first(node.path("candidates")).path("content");
@@ -248,11 +252,11 @@ public class GeminiProviderClient implements ProviderClient {
         }
     }
 
-    private JsonNode first(JsonNode array) {
+    protected JsonNode first(JsonNode array) {
         return array.isArray() && !array.isEmpty() ? array.get(0) : objectMapper.createObjectNode();
     }
 
-    private String extractText(JsonNode content) {
+    protected String extractText(JsonNode content) {
         JsonNode parts = content.path("parts");
         if (!parts.isArray()) {
             return "";
@@ -267,7 +271,7 @@ public class GeminiProviderClient implements ProviderClient {
         return builder.toString();
     }
 
-    private List<GeneratedMedia> extractMedia(JsonNode content) {
+    protected List<GeneratedMedia> extractMedia(JsonNode content) {
         JsonNode parts = content.path("parts");
         if (!parts.isArray()) {
             return List.of();
@@ -293,7 +297,7 @@ public class GeminiProviderClient implements ProviderClient {
         return mediaOutputs;
     }
 
-    private FinishReason finishReason(String value) {
+    protected FinishReason finishReason(String value) {
         return switch (value) {
             case "STOP" -> FinishReason.STOP;
             case "MAX_TOKENS" -> FinishReason.LENGTH;
@@ -302,7 +306,7 @@ public class GeminiProviderClient implements ProviderClient {
         };
     }
 
-    private TokenUsage usage(JsonNode usage) {
+    protected TokenUsage usage(JsonNode usage) {
         long promptTokens = usage.path("promptTokenCount").asLong(0);
         long completionTokens = usage.path("candidatesTokenCount").asLong(0);
         long totalTokens = usage.path("totalTokenCount").asLong(promptTokens + completionTokens);

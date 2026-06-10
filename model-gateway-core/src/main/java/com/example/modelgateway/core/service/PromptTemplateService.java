@@ -10,7 +10,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 public class PromptTemplateService {
     public static final String PROMPT_KEY = "promptKey";
     public static final String PROMPT_VERSION = "promptVersion";
@@ -20,10 +22,6 @@ public class PromptTemplateService {
     public static final String RESOLVED_PROMPT_VERSION = "resolvedPromptVersion";
 
     private final PromptTemplateRepository repository;
-
-    public PromptTemplateService(PromptTemplateRepository repository) {
-        this.repository = repository;
-    }
 
     public ChatCompletionRequest apply(ChatCompletionRequest request, ModelRoute route) {
         Optional<PromptTemplate> template = resolveTemplate(request);

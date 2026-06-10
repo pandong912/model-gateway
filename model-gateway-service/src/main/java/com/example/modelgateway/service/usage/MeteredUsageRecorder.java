@@ -8,13 +8,11 @@ import com.example.modelgateway.core.usage.UsageRecorder;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tags;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 public class MeteredUsageRecorder implements UsageRecorder {
     private final MeterRegistry meterRegistry;
-
-    public MeteredUsageRecorder(MeterRegistry meterRegistry) {
-        this.meterRegistry = meterRegistry;
-    }
 
     @Override
     public void recordSuccess(ChatCompletionRequest request, ChatCompletionResponse response, ModelRoute route, InvocationContext context) {

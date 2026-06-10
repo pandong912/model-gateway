@@ -12,6 +12,8 @@ import com.example.modelgateway.core.service.PromptTemplateService;
 import com.example.modelgateway.core.usage.UsageRecorder;
 import com.example.modelgateway.provider.gemini.GeminiProviderClient;
 import com.example.modelgateway.provider.gemini.GeminiProviderConfig;
+import com.example.modelgateway.provider.gemini.VertexGeminiProviderClient;
+import com.example.modelgateway.provider.gemini.VertexGeminiProviderConfig;
 import com.example.modelgateway.provider.openai.OpenAiCompatibleProviderClient;
 import com.example.modelgateway.provider.openai.OpenAiCompatibleProviderConfig;
 import com.example.modelgateway.service.persistence.MybatisPlusPromptTemplateRepository;
@@ -74,6 +76,18 @@ public class GatewayConfiguration {
         if ("gemini".equalsIgnoreCase(provider.getType())) {
             return new GeminiProviderClient(
                     new GeminiProviderConfig(provider.getId(), provider.getBaseUrl(), provider.getApiKey(), provider.getTimeout()),
+                    webClientBuilder,
+                    objectMapper);
+        }
+        if ("vertex-gemini".equalsIgnoreCase(provider.getType())) {
+            return new VertexGeminiProviderClient(
+                    new VertexGeminiProviderConfig(
+                            provider.getId(),
+                            provider.getBaseUrl(),
+                            provider.getProjectId(),
+                            provider.getLocation(),
+                            provider.getCredentialsPath(),
+                            provider.getTimeout()),
                     webClientBuilder,
                     objectMapper);
         }

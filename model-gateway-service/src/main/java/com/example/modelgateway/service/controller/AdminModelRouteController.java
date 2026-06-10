@@ -6,6 +6,7 @@ import com.example.modelgateway.core.route.RouteRepository;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,12 +17,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/admin/v1/model-routes")
+@RequiredArgsConstructor
 public class AdminModelRouteController {
     private final RouteRepository routeRepository;
-
-    public AdminModelRouteController(RouteRepository routeRepository) {
-        this.routeRepository = routeRepository;
-    }
 
     @GetMapping
     public List<ModelRouteDescriptor> routes() {

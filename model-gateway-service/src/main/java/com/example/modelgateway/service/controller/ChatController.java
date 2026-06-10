@@ -5,6 +5,7 @@ import com.example.modelgateway.api.model.ChatCompletionResponse;
 import com.example.modelgateway.api.model.ChatStreamEvent;
 import com.example.modelgateway.core.service.ModelInvocationService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,12 +17,9 @@ import reactor.core.publisher.Mono;
 
 @RestController
 @RequestMapping("/api/v1/chat")
+@RequiredArgsConstructor
 public class ChatController {
     private final ModelInvocationService invocationService;
-
-    public ChatController(ModelInvocationService invocationService) {
-        this.invocationService = invocationService;
-    }
 
     @PostMapping("/completions")
     public Mono<ChatCompletionResponse> completions(@Valid @RequestBody ChatCompletionRequest request) {

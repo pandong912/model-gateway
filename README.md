@@ -12,6 +12,8 @@
 - `model-gateway-service`: 可运行 Spring Boot 网关服务。
 - `model-gateway-client-starter`: 内部 Java Client Starter。
 - `model-gateway-examples`: AI 视频场景调用示例。
+- `solution-ecommerce-api`: 电商素材生成解决方案的请求、计划和结果模型。
+- `solution-ecommerce-worker`: Temporal Workflow、Activities、计划 Agent 和可灵 API 占位实现。
 
 ## Quick Start
 
@@ -66,9 +68,9 @@ export MODEL_GATEWAY_REQUESTS_PER_MINUTE=120
 
 ## Prompt Registry
 
-系统提示词通过数据库中的 Prompt Catalog 管理，不建议硬编码在业务代码中。初始 Prompt 数据由 Flyway 迁移脚本导入，后续通过管理接口或运营后台维护。Prompt 支持按 `key`、`version`、`scenario`、`locale` 管理模板，并在模型调用前自动注入为系统消息。
+提示词通过数据库中的 Prompt Catalog 管理，不建议硬编码在业务代码中。Prompt 支持按 `key`、`version`、`scenario`、`locale` 和 `role` 管理模板，既可以保存 `SYSTEM` 提示词，也可以保存 `USER` 提示词。后续模板变更可通过管理接口或运营后台维护。
 
-PostgreSQL 初始化脚本由 Flyway 管理，`seed_prompt_templates.sql` 包含 `storyboard.system`、`script.system`、`asset-tagging.system`、`shot-prompt-rewrite.system` 等 PromptTemplate 初始数据。
+PostgreSQL schema 迁移脚本由 Flyway 管理，`db/data` 下的 SQL 可手工导入 PromptTemplate 初始数据。例如 `seed_ecommerce_asset_design_prompt.sql` 包含 `ecommerce-asset-design.user` 用户提示词模板。
 
 如果请求没有显式指定提示词，网关会按 `scenario` 查找 `default-for-scenario: true` 的模板。例如 `STORYBOARD_PLANNING` 会默认使用 `storyboard.system`。
 
@@ -114,7 +116,7 @@ modelGatewayClient.prompts()
         .orElseThrow());
 ```
 
-`model-gateway-examples` 中的示例会先读取数据库中的 `PromptTemplate`，再将 `promptKey` 和 `promptVersion` 放入请求 `metadata`，由网关服务端负责注入系统提示词。
+`model-gateway-examples` 中的示例会先读取数据库中的 `PromptTemplate`。系统提示词示例会将 `promptKey` 和 `promptVersion` 放入请求 `metadata`，由网关服务端负责注入；用户提示词示例 `EcommerceAssetDesignExample` 会在客户端把商品信息渲染进 `USER` 模板，再发送给 Gemini 3.1 Pro Preview 生成电商素材设计计划。
 
 ## DeepSeek
 
@@ -205,6 +207,41 @@ curl -X POST http://localhost:8080/api/v1/chat/completions \
 ```
 
 需要更强推理能力时可指定 `modelHint` 为 `gemini-pro`。多模态视觉理解场景可指定 `modelHint` 为 `gemini-vision`，默认模型同样使用 `gemini-2.5-flash`。
+
+如果只有 Google Cloud service account credential，没有 Gemini API Key，可以使用 `vertex-gemini` provider。将 service account JSON 保存到本机或部署环境的安全路径，避免提交到 Git，然后配置：
+
+```bash
+export VERTEX_GEMINI_PROJECT_ID=your-gcp-project-id
+export VERTEX_GEMINI_LOCATION=us-central1
+export VERTEX_GEMINI_CREDENTIALS_PATH=/secure/path/service-account.json
+
+mvn -pl model-gateway-service -am spring-boot:run
+```
+
+`vertex-gemini` 会使用 service account 换取 OAuth2 access token，并调用 Vertex AI Gemini 的 `generateContent` / `streamGenerateContent` 接口。电商素材示例路由 `gemini-3.1-pro-preview` 默认使用 `vertex-gemini` provider。
+
+## Ecommerce Asset Workflow
+
+`solution-ecommerce-worker` 提供电商素材生成工作流：Temporal Workflow 负责编排、重试和并发，`ModelGatewayEcommercePlanAgent` 使用 Embabel `@Agent`、`@Action`、`@AchievesGoal` 注解表达“加载提示词、调用 Gemini、解析计划、校验/修复计划”的智能规划步骤。计划完成后，Workflow 会按需生成模特图、并行生成 10 张展示图，最后使用其中一张展示图作为首帧生成视频。当前可灵调用由 `MockKlingClient` 表达简洁请求/响应边界，后续替换为真实可灵 HTTP Client 即可。
+
+当前 Activity 会显式调用 Embabel Agent 的 action 方法，保证 Temporal Workflow 内没有 LLM、HTTP、文件或环境变量读取等非确定性逻辑。后续如果要启用 Embabel runtime 的自动 GOAP 规划执行，可在 `EcommercePlanAgent` 这一层替换调用方式，不需要改 Temporal Workflow。
+
+本地一次性运行需要先启动 Temporal local service 和 `model-gateway-service`：
+
+```bash
+mvn -pl solution-ecommerce-worker -am compile
+
+mvn -pl solution-ecommerce-worker exec:java \
+  -Dexec.mainClass=com.example.modelgateway.ecommerce.worker.EcommerceAssetWorkflowRunner \
+  -Dexec.args="--product-info 项链 --product-images /path/p1.png,/path/p2.png --model-images /path/m1.png --output-file /tmp/ecommerce-result.json"
+```
+
+如果只想启动长驻 Worker：
+
+```bash
+mvn -pl solution-ecommerce-worker exec:java \
+  -Dexec.mainClass=com.example.modelgateway.ecommerce.worker.EcommerceAssetWorkerApplication
+```
 
 图片或视频理解请求可以在 `messages[].media` 中传入媒体。小文件可传 `base64`，大文件建议先上传到 Gemini Files API 后通过 `metadata.geminiFileUri` 传入文件 URI：
 

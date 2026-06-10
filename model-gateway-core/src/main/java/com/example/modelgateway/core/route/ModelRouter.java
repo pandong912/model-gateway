@@ -6,13 +6,11 @@ import com.example.modelgateway.core.exception.GatewayException;
 import com.example.modelgateway.core.model.ModelRoute;
 import java.util.Comparator;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 public class ModelRouter {
     private final RouteRepository routeRepository;
-
-    public ModelRouter(RouteRepository routeRepository) {
-        this.routeRepository = routeRepository;
-    }
 
     public ModelRoute route(ChatCompletionRequest request) {
         if (request.modelHint() != null && !request.modelHint().isBlank()) {

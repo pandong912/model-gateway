@@ -3,6 +3,7 @@ package com.example.modelgateway.service.controller;
 import com.example.modelgateway.core.model.PromptTemplate;
 import com.example.modelgateway.core.service.PromptTemplateRepository;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -13,12 +14,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/admin/v1/prompts")
+@RequiredArgsConstructor
 public class AdminPromptController {
     private final PromptTemplateRepository repository;
-
-    public AdminPromptController(PromptTemplateRepository repository) {
-        this.repository = repository;
-    }
 
     @GetMapping
     public List<PromptTemplate> prompts() {

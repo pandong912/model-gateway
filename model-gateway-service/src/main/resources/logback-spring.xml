@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+
+    <property name="CONSOLE_LOG_PATTERN"
+              value="%clr(%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX}){faint} %clr(%5p) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n%wEx"/>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${CONSOLE_LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <logger name="com.example.modelgateway" level="${MODEL_GATEWAY_LOG_LEVEL:INFO}"/>
+    <logger name="org.springframework.web" level="${SPRING_WEB_LOG_LEVEL:INFO}"/>
+    <logger name="reactor.netty" level="${REACTOR_NETTY_LOG_LEVEL:INFO}"/>
+    <logger name="com.zaxxer.hikari" level="${HIKARI_LOG_LEVEL:INFO}"/>
+
+    <root level="${ROOT_LOG_LEVEL:INFO}">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+</configuration>

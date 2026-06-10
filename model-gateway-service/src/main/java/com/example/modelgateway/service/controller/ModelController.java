@@ -5,6 +5,7 @@ import com.example.modelgateway.api.model.ModelRouteDescriptor;
 import com.example.modelgateway.core.model.ModelRoute;
 import com.example.modelgateway.core.route.RouteRepository;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,12 +13,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v1/models")
+@RequiredArgsConstructor
 public class ModelController {
     private final RouteRepository routeRepository;
-
-    public ModelController(RouteRepository routeRepository) {
-        this.routeRepository = routeRepository;
-    }
 
     @GetMapping
     public List<ModelDescriptor> models() {

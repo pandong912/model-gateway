@@ -12,7 +12,9 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 public class MybatisPlusRouteRepository implements RouteRepository {
     private static final TypeReference<List<ModelCapability>> CAPABILITIES = new TypeReference<>() {
     };
@@ -23,11 +25,6 @@ public class MybatisPlusRouteRepository implements RouteRepository {
 
     private final ModelRouteMapper mapper;
     private final ObjectMapper objectMapper;
-
-    public MybatisPlusRouteRepository(ModelRouteMapper mapper, ObjectMapper objectMapper) {
-        this.mapper = mapper;
-        this.objectMapper = objectMapper;
-    }
 
     @Override
     public List<ModelRoute> findAll() {

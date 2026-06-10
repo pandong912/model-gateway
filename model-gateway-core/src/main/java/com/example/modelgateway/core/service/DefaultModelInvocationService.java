@@ -21,9 +21,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeoutException;
+import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+@RequiredArgsConstructor
 public class DefaultModelInvocationService implements ModelInvocationService {
     private static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(60);
 
@@ -34,22 +36,6 @@ public class DefaultModelInvocationService implements ModelInvocationService {
     private final UsageRecorder usageRecorder;
     private final PromptTemplateService promptTemplateService;
     private final Map<String, CircuitBreaker> circuitBreakers = new ConcurrentHashMap<>();
-
-    public DefaultModelInvocationService(
-            ModelRouter router,
-            RouteRepository routeRepository,
-            ProviderRegistry providerRegistry,
-            QuotaService quotaService,
-            UsageRecorder usageRecorder,
-            PromptTemplateService promptTemplateService
-    ) {
-        this.router = router;
-        this.routeRepository = routeRepository;
-        this.providerRegistry = providerRegistry;
-        this.quotaService = quotaService;
-        this.usageRecorder = usageRecorder;
-        this.promptTemplateService = promptTemplateService;
-    }
 
     @Override
     public Mono<ChatCompletionResponse> chat(ChatCompletionRequest request) {
@@ -139,7 +125,31 @@ public class DefaultModelInvocationService implements ModelInvocationService {
         if (error instanceof TimeoutException) {
             return new GatewayException(GatewayErrorCode.PROVIDER_TIMEOUT, "Model provider timed out", 504, error);
         }
+        if (isWebClientResponseException(error)) {
+            String detail = webClientResponseDetail(error);
+            return new GatewayException(
+                    GatewayErrorCode.PROVIDER_UNAVAILABLE,
+                    "Model provider invocation failed: " + detail,
+                    502,
+                    error);
+        }
         return new GatewayException(GatewayErrorCode.PROVIDER_UNAVAILABLE, "Model provider invocation failed", 502, error);
+    }
+
+    private boolean isWebClientResponseException(Throwable error) {
+        return "org.springframework.web.reactive.function.client.WebClientResponseException"
+                .equals(error.getClass().getName());
+    }
+
+    private String webClientResponseDetail(Throwable error) {
+        try {
+            Object statusCode = error.getClass().getMethod("getStatusCode").invoke(error);
+            Object responseBody = error.getClass().getMethod("getResponseBodyAsString").invoke(error);
+            String body = responseBody == null ? "" : String.valueOf(responseBody);
+            return body.isBlank() ? "HTTP " + statusCode : "HTTP " + statusCode + " " + body;
+        } catch (Exception reflectionError) {
+            return error.getMessage();
+        }
     }
 
     private CircuitBreaker circuitBreaker(ModelRoute route) {

@@ -111,5 +111,23 @@ VALUES
         '[]',
         120,
         '{}'
+    ),
+    (
+        'gemini-3.1-pro-preview',
+        'vertex-gemini',
+        'gemini-3.1-pro-preview',
+        '["TEXT_GENERATION","STREAMING","JSON_MODE","LONG_CONTEXT"]',
+        '["ECOMMERCE_ASSET_DESIGN"]',
+        55,
+        TRUE,
+        '[]',
+        120,
+        '{"domain":"ecommerce-asset-design","releaseStage":"preview","auth":"vertex-service-account"}'
     )
 ON CONFLICT (id) DO NOTHING;
+
+UPDATE model_routes
+SET provider = 'vertex-gemini',
+    fallback_route_ids = '[]',
+    metadata = '{"domain":"ecommerce-asset-design","releaseStage":"preview","auth":"vertex-service-account"}'
+WHERE id = 'gemini-3.1-pro-preview';

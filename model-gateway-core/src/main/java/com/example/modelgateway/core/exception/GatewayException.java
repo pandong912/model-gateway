@@ -1,7 +1,9 @@
 package com.example.modelgateway.core.exception;
 
 import com.example.modelgateway.api.enums.GatewayErrorCode;
+import lombok.Getter;
 
+@Getter
 public class GatewayException extends RuntimeException {
     private final GatewayErrorCode code;
     private final int status;
@@ -16,13 +18,5 @@ public class GatewayException extends RuntimeException {
         super(message, cause);
         this.code = code;
         this.status = status;
-    }
-
-    public GatewayErrorCode code() {
-        return code;
-    }
-
-    public int status() {
-        return status;
     }
 }

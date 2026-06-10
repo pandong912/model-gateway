@@ -14,7 +14,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 public class MybatisPlusPromptTemplateRepository implements PromptTemplateRepository {
     private static final TypeReference<Map<String, Object>> METADATA = new TypeReference<>() {
     };
@@ -22,16 +24,6 @@ public class MybatisPlusPromptTemplateRepository implements PromptTemplateReposi
     private final PromptTemplateMapper mapper;
     private final PromptTemplateAuditMapper auditMapper;
     private final ObjectMapper objectMapper;
-
-    public MybatisPlusPromptTemplateRepository(
-            PromptTemplateMapper mapper,
-            PromptTemplateAuditMapper auditMapper,
-            ObjectMapper objectMapper
-    ) {
-        this.mapper = mapper;
-        this.auditMapper = auditMapper;
-        this.objectMapper = objectMapper;
-    }
 
     @Override
     public List<PromptTemplate> findAll() {
