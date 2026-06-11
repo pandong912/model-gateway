@@ -19,4 +19,17 @@
             <artifactId>model-gateway-client-starter</artifactId>
         </dependency>
     </dependencies>
+
+    <build>
+        <finalName>${project.artifactId}</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <mainClass>com.example.modelgateway.examples.EcommerceAssetDesignExampleRunner</mainClass>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>
