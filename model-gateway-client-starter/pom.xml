@@ -17,12 +17,10 @@
         <dependency>
             <groupId>com.example</groupId>
             <artifactId>model-gateway-api</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.example</groupId>
             <artifactId>model-gateway-core</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
