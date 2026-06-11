@@ -36,6 +36,10 @@
         <resilience4j.version>2.4.0</resilience4j.version>
         <mybatis-plus.version>3.5.16</mybatis-plus.version>
         <google-auth-library.version>1.48.0</google-auth-library.version>
+        <nexus.release.repository.id>nexus-releases</nexus.release.repository.id>
+        <nexus.snapshot.repository.id>nexus-snapshots</nexus.snapshot.repository.id>
+        <nexus.release.repository.url>http://REPLACE_WITH_KONG_ALB_DNS/nexus/repository/maven-releases/</nexus.release.repository.url>
+        <nexus.snapshot.repository.url>http://REPLACE_WITH_KONG_ALB_DNS/nexus/repository/maven-snapshots/</nexus.snapshot.repository.url>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
@@ -100,6 +104,17 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
+
+    <distributionManagement>
+        <repository>
+            <id>${nexus.release.repository.id}</id>
+            <url>${nexus.release.repository.url}</url>
+        </repository>
+        <snapshotRepository>
+            <id>${nexus.snapshot.repository.id}</id>
+            <url>${nexus.snapshot.repository.url}</url>
+        </snapshotRepository>
+    </distributionManagement>
 
     <build>
         <pluginManagement>

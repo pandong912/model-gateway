@@ -319,3 +319,46 @@ curl -X POST http://localhost:8080/api/v1/chat/completions \
   ]
 }
 ```
+
+## 发布 Client Starter 到 Nexus
+
+`model-gateway-client-starter` 依赖 `model-gateway-api` 和 `model-gateway-core`。如果其它服务要引用 starter，需要把 starter 及其依赖模块一起发布到 Nexus。
+
+先在 Nexus 中创建 Maven 仓库：
+
+- `maven-releases`: hosted release repository
+- `maven-snapshots`: hosted snapshot repository
+- `maven-public`: group repository，包含 `maven-releases`、`maven-snapshots` 和 `maven-central`
+
+然后配置 Nexus 访问地址和账号：
+
+```bash
+export NEXUS_BASE_URL=http://k8s-kong-kongalb-d47fba56e3-58647003.us-east-1.elb.amazonaws.com/nexus
+export NEXUS_USERNAME=admin
+export NEXUS_PASSWORD=your-nexus-password
+
+export NEXUS_MAVEN_RELEASES_URL="${NEXUS_BASE_URL}/repository/maven-releases/"
+export NEXUS_MAVEN_SNAPSHOTS_URL="${NEXUS_BASE_URL}/repository/maven-snapshots/"
+export NEXUS_MAVEN_PUBLIC_URL="${NEXUS_BASE_URL}/repository/maven-public/"
+```
+
+发布 starter 及其依赖模块：
+
+```bash
+mvn -s .mvn/settings-nexus.xml \
+  -Dnexus.release.repository.url="${NEXUS_MAVEN_RELEASES_URL}" \
+  -Dnexus.snapshot.repository.url="${NEXUS_MAVEN_SNAPSHOTS_URL}" \
+  -pl model-gateway-client-starter \
+  -am \
+  deploy
+```
+
+其它服务消费时，在 Maven `settings.xml` 中配置同一个 `nexus-public` repository/profile，然后添加依赖：
+
+```xml
+<dependency>
+    <groupId>com.example</groupId>
+    <artifactId>model-gateway-client-starter</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+</dependency>
+```
