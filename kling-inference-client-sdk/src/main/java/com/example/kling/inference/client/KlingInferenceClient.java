@@ -17,6 +17,8 @@ public interface KlingInferenceClient {
 
     Mono<KlingGenerationJob> getJob(String jobId);
 
+    Mono<KlingGenerationResult> getResult(String jobId);
+
     Mono<KlingGenerationJob> waitJob(String jobId, Duration timeout);
 
     Flux<KlingGenerationEvent> watchJob(String jobId);

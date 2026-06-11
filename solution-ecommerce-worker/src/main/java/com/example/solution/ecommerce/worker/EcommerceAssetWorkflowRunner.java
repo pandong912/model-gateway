@@ -10,10 +10,13 @@ import io.temporal.client.WorkflowOptions;
 import io.temporal.serviceclient.WorkflowServiceStubs;
 import io.temporal.worker.Worker;
 import io.temporal.worker.WorkerFactory;
+
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashMap;
@@ -76,7 +79,7 @@ public class EcommerceAssetWorkflowRunner {
         if (imageFiles == null || imageFiles.isEmpty()) {
             return List.of();
         }
-        java.util.ArrayList<AssetInput> assets = new java.util.ArrayList<>();
+        List<AssetInput> assets = new ArrayList<>();
         for (int index = 0; index < imageFiles.size(); index++) {
             Path imageFile = imageFiles.get(index);
             String name = prefix + "_" + (index + 1);
@@ -90,7 +93,7 @@ public class EcommerceAssetWorkflowRunner {
         return List.copyOf(assets);
     }
 
-    private static String mimeType(Path imageFile) throws java.io.IOException {
+    private static String mimeType(Path imageFile) throws IOException {
         String detected = Files.probeContentType(imageFile);
         return detected == null || detected.isBlank() ? "image/jpeg" : detected;
     }

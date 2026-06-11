@@ -9,6 +9,7 @@ import com.example.kling.inference.contract.model.KlingGenerationEvent;
 import com.example.kling.inference.contract.model.KlingGenerationJob;
 import com.example.kling.inference.contract.model.KlingGenerationPayload;
 import com.example.kling.inference.contract.model.KlingGenerationRequest;
+import com.example.kling.inference.contract.model.KlingGenerationResult;
 import com.example.kling.inference.core.InferenceBackendClient;
 import com.example.kling.inference.core.InferenceEventPublisher;
 import com.example.kling.inference.core.InferenceJobRepository;
@@ -50,7 +51,24 @@ public class DefaultInferenceOrchestrationService implements InferenceOrchestrat
         return jobRepository.findById(jobId)
                 .switchIfEmpty(Mono.error(new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
-                        "Video generation job not found: " + jobId)));
+                        "Kling generation job not found: " + jobId)));
+    }
+
+    @Override
+    public Mono<KlingGenerationResult> getResult(String jobId) {
+        return getJob(jobId).flatMap(job -> {
+            if (job.status() == InferenceJobStatus.SUCCEEDED && job.result() != null) {
+                return Mono.just(job.result());
+            }
+            if (!job.status().isTerminal()) {
+                return Mono.error(new ResponseStatusException(
+                        HttpStatus.CONFLICT,
+                        "Kling generation job is not completed yet: " + job.status()));
+            }
+            return Mono.error(new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Kling generation job ended without successful result: " + job.status()));
+        });
     }
 
     @Override

@@ -7,6 +7,7 @@ import com.example.kling.inference.contract.model.KlingGenerationEvent;
 import com.example.kling.inference.contract.model.KlingGenerationJob;
 import com.example.kling.inference.contract.model.KlingGenerationPayload;
 import com.example.kling.inference.contract.model.KlingGenerationRequest;
+import com.example.kling.inference.contract.model.KlingGenerationResult;
 import com.example.kling.inference.core.InferenceOrchestrationService;
 import java.time.Duration;
 import java.time.Instant;
@@ -68,6 +69,18 @@ public class LocalDevelopmentInferenceOrchestrationService implements InferenceO
             return Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND, "Video generation job not found: " + jobId));
         }
         return Mono.just(job);
+    }
+
+    @Override
+    public Mono<KlingGenerationResult> getResult(String jobId) {
+        return getJob(jobId).flatMap(job -> {
+            if (job.status() == InferenceJobStatus.SUCCEEDED && job.result() != null) {
+                return Mono.just(job.result());
+            }
+            return Mono.error(new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Kling generation job result is not available: " + job.status()));
+        });
     }
 
     @Override

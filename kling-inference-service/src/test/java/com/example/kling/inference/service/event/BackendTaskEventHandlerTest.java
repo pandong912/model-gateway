@@ -52,7 +52,6 @@ class BackendTaskEventHandlerTest {
                 List.of(new OutputAsset("asset_001", AssetType.VIDEO, "https://example/video.mp4", "video/mp4", null, null, 5, Map.of())),
                 "https://example/cover.jpg",
                 "kling-video",
-                "v1",
                 null,
                 Map.of()
         );

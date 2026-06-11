@@ -21,6 +21,7 @@ public class WebClientKlingInferenceClient implements KlingInferenceClient {
 
     public static final String VIDEO_GENERATIONS_PATH = "/internal/v1/video-generations";
     public static final String IMAGE_GENERATIONS_PATH = "/internal/v1/image-generations";
+    public static final String GENERATION_JOBS_PATH = "/internal/v1/generation-jobs";
 
     private final WebClient webClient;
     private final KlingInferenceClientOptions options;
@@ -68,6 +69,14 @@ public class WebClientKlingInferenceClient implements KlingInferenceClient {
                 .uri(generationPath + "/{jobId}", jobId)
                 .retrieve()
                 .bodyToMono(KlingGenerationJob.class);
+    }
+
+    @Override
+    public Mono<KlingGenerationResult> getResult(String jobId) {
+        return webClient.get()
+                .uri(GENERATION_JOBS_PATH + "/{jobId}/result", jobId)
+                .retrieve()
+                .bodyToMono(KlingGenerationResult.class);
     }
 
     @Override
