@@ -12,8 +12,6 @@
 - `model-gateway-service`: 可运行 Spring Boot 网关服务。
 - `model-gateway-client-starter`: 内部 Java Client Starter。
 - `model-gateway-examples`: AI 视频场景调用示例。
-- `solution-ecommerce-api`: 电商素材生成解决方案的请求、计划和结果模型。
-- `solution-ecommerce-worker`: Temporal Workflow、Activities、计划 Agent 和可灵 API 占位实现。
 
 ## Quick Start
 
